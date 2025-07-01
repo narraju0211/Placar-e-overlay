@@ -409,6 +409,26 @@
             console.error("ID do Narrador não encontrado na URL. Use ?narratorId=SEU_ID");
             document.getElementById('placarPrincipal').innerHTML = '<div style="color: red; font-size: 24px; text-align: center; padding: 20px;">ERRO: ID do Narrador não definido na URL.<br>Ex: overlay.html?narratorId=seu_id</div>';
         }
+        
+        // ADICIONADO: Listener para o término da animação no GOOOOL!
+        const goalAnimationElement = document.getElementById('goalAnimation_display');
+        goalAnimationElement.addEventListener('animationend', (event) => {
+            if (event.animationName === 'fadeInScaleOut') {
+                // Quando a animação GOOOOL! termina, garante que ela suma e o placar apareça
+                goalAnimationElement.style.visibility = 'hidden';
+                goalAnimationElement.classList.remove('active'); // Remove a classe active
+                const placarContentWrapper = document.getElementById('placarContentWrapper');
+                placarContentWrapper.classList.remove('hidden-content');
+                placarContentWrapper.classList.add('visible-content');
+                
+                // Força a re-renderização para garantir que o placar normal apareça
+                renderUI(); 
+                
+                // IMPORTANTE: Reseta o activeAnimation para null localmente.
+                // Isso é um fallback caso o controlador não envie o comando.
+                overlayState.activeAnimation = null;
+            }
+        });
     }
 
     function setupFirebaseForNarrator(narratorId) {
@@ -512,22 +532,22 @@
       const penaltyContent = document.getElementById('penaltyPlacarContent_display');
       const goalAnimation = document.getElementById('goalAnimation_display');
 
-      // Sempre remove a classe 'active' da animação para que ela possa ser reativada pelo CSS
-      goalAnimation.classList.remove('active'); 
-
+      // Verifica se a animação deve estar ativa AGORA (recebido do Firebase)
       if (overlayState.activeAnimation === 'goalAnimation') {
-          // Esconde o conteúdo do placar
+          // Esconde o conteúdo do placar imediatamente (para não piscar)
           placarContentWrapper.classList.add('hidden-content');
           placarContentWrapper.classList.remove('visible-content');
           // Mostra e ativa a animação
           goalAnimation.style.visibility = 'visible';
           goalAnimation.classList.add('active'); 
       } else {
+          // Se activeAnimation não é 'goalAnimation' (ou é null), garante que a animação esteja escondida
+          goalAnimation.style.visibility = 'hidden';
+          goalAnimation.classList.remove('active'); // Remove a classe active caso tenha ficado presa
+
           // Mostra o conteúdo do placar
           placarContentWrapper.classList.remove('hidden-content');
           placarContentWrapper.classList.add('visible-content');
-          // Esconde a animação
-          goalAnimation.style.visibility = 'hidden';
 
           // Decide entre placar normal e pênaltis dentro do wrapper visível
           if (overlayState.penaltyModeActive) {
@@ -599,4 +619,4 @@
     }
   </script>
 </body>
-  </html>
+</html>
