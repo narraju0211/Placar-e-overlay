@@ -203,6 +203,40 @@
         cursor: pointer;
         box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
     }
+    .control-group input[type="color"] {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        width: 60px; /* Largura ajustada para o color picker */
+        height: 30px; /* Altura ajustada */
+        border: none;
+        border-radius: 5px;
+        padding: 0;
+        cursor: pointer;
+        background: transparent;
+    }
+    .control-group input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 0;
+    }
+    .control-group input[type="color"]::-webkit-color-swatch {
+        border: 1px solid #555;
+        border-radius: 5px;
+    }
+    .control-group input[type="color"]::-moz-color-swatch-wrapper {
+        padding: 0;
+    }
+    .control-group input[type="color"]::-moz-color-swatch {
+        border: 1px solid #555;
+        border-radius: 5px;
+    }
+    .control-group .color-picker-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        justify-content: center;
+    }
+
 
     hr {
         border: none;
@@ -392,6 +426,13 @@
             <input type="range" id="placarOpacitySlider" min="0" max="100" value="90" 
                    oninput="updatePlacarOpacity(this.value)">
         </div>
+        <div class="control-group">
+            <label for="fontColorPicker">Cor da Fonte do Placar:</label>
+            <div class="color-picker-wrapper">
+                <input type="color" id="fontColorPicker" value="#FFFFFF" onchange="updateFontColor(this.value)">
+                <span>(afeta texto principal)</span>
+            </div>
+        </div>
         <div class="control-group inline-buttons">
             <button class="btn purple" onclick="togglePlacarTheme()">Alternar Cor Placar</button>
             <button class="btn dark-gray" onclick="toggleOverlayVisibility()">Ocultar/Mostrar Placar</button>
@@ -430,6 +471,7 @@
       timerRunning: false,
       placarThemeIndex: 0,
       placarOpacity: 90, 
+      fontColor: '#FFFFFF', // Nova propriedade para a cor da fonte
       penaltyModeActive: false,
       activeAnimation: null, 
       currentPeriod: 1,
@@ -501,6 +543,10 @@
         document.getElementById('placarOpacitySlider').addEventListener('input', (e) => {
             updatePlacarOpacity(e.target.value);
         });
+        // Listener para a cor da fonte
+        document.getElementById('fontColorPicker').addEventListener('input', (e) => {
+            updateFontColor(e.target.value);
+        });
     }
 
     function setupFirebaseForNarrator(narratorId) {
@@ -519,11 +565,12 @@
                     if (!data.penalties['2']) data.penalties['2'] = [];
                 }
                 
+                // Seta valores padrão se não existirem no Firebase
+                overlayState.placarOpacity = data.placarOpacity !== undefined ? data.placarOpacity : 90;
+                overlayState.fontColor = data.fontColor || '#FFFFFF'; // Padrão branco
+                
                 // Atualiza o estado local com os dados do Firebase, mantendo a referência do objeto
-                Object.assign(overlayState, { 
-                    placarOpacity: 90, // Valor padrão se não vier do Firebase
-                    ...data 
-                });
+                Object.assign(overlayState, data);
             } else {
                 console.log(`Nó para narrador '${narratorId}' não encontrado. Inicializando estado.`);
                 // Se não há dados, inicializa no Firebase com o estado padrão
@@ -561,6 +608,7 @@
       document.getElementById('nomeAbbr1_input_panel').value = overlayState.nomeAbbr1;
       document.getElementById('nomeAbbr2_input_panel').value = overlayState.nomeAbbr2;
       document.getElementById('placarOpacitySlider').value = overlayState.placarOpacity;
+      document.getElementById('fontColorPicker').value = overlayState.fontColor; // Seta o valor do color picker
 
       const toggleButton = document.querySelector('.btn.dark-gray[onclick="toggleOverlayVisibility()"]');
       if (overlayState.isVisible) {
@@ -572,13 +620,8 @@
 
     function generateOverlayLink(narratorId) {
         const currentPath = window.location.href; 
-        // Esta linha pega o caminho base da URL atual, por exemplo:
-        // Se a URL for https://narraju0211.github.io/Placar-e-overlay/control.html?narratorId=Narraju
-        // overlayBasePath será https://narraju0211.github.io/Placar-e-overlay
         let overlayBasePath = currentPath.substring(0, currentPath.lastIndexOf('/')); 
         
-        // CORREÇÃO AQUI: Aponta para 'overlay.html' (nome padronizado)
-        // O link gerado será, por exemplo: https://narraju0211.github.io/Placar-e-overlay/overlay.html?narratorId=Narraju
         const overlayLink = `${overlayBasePath}/overlay.html?narratorId=${narratorId}`;
         const overlayLinkElement = document.getElementById('overlayLinkDisplay');
 
@@ -627,6 +670,12 @@
     function updatePlacarOpacity(value) {
         if (!overlayStateRef) { console.error("Firebase não conectado."); return; }
         overlayState.placarOpacity = parseInt(value, 10);
+        saveState();
+    }
+
+    function updateFontColor(color) {
+        if (!overlayStateRef) { console.error("Firebase não conectado."); return; }
+        overlayState.fontColor = color;
         saveState();
     }
 
