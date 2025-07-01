@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&family=Montserrat:wght@600;800&display=swap" rel="stylesheet">
   <style>
+    /* ... (MANTENHA SEU CSS EXISTENTE AQUI) ... */
     :root {
       --placar-bg-rgb: 34, 34, 34; 
       --placar-opacity: 0.9; 
@@ -280,7 +281,6 @@
     .animated-text.active {
       animation: fadeInScaleOut 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; /* Curva de animação mais suave */
     }
-
   </style>
 </head>
 <body>
@@ -457,30 +457,26 @@
                 overlayState.logoOverlay = newState.logoOverlay || '';
                 overlayState.isVisible = newState.isVisible !== undefined ? newState.isVisible : true;
 
-                // *** Lógica de Sincronização do Cronômetro (REVISADA) ***
+                // *** NOVA LÓGICA DO CRONÔMETRO: SÓ ALTERA SE HOUVER COMANDO EXPLÍCITO ***
                 const firebaseSeconds = newState.seconds !== undefined ? newState.seconds : 0;
                 const firebaseTimerRunning = newState.timerRunning !== undefined ? newState.timerRunning : false;
 
                 if (firebaseTimerRunning && !overlayState.timerRunning) {
-                    // Timer LIGOU no Firebase: Inicia nosso timer local a partir do tempo do Firebase
-                    startLocalTimer(firebaseSeconds);
+                    // Comando para INICIAR o timer veio do Firebase
+                    startLocalTimer(firebaseSeconds); 
                 } else if (!firebaseTimerRunning && overlayState.timerRunning) {
-                    // Timer DESLIGOU no Firebase: Para nosso timer local
+                    // Comando para PAUSAR o timer veio do Firebase
                     stopLocalTimer();
-                    localSeconds = firebaseSeconds; // Sincroniza uma última vez ao parar
-                } else if (firebaseTimerRunning && overlayState.timerRunning) {
-                    // Timer JÁ ESTÁ RODANDO em ambos: Sincroniza se houver uma diferença grande
-                    // Isso cobre casos de latência ou o controlador tendo resetado o tempo
-                    if (Math.abs(firebaseSeconds - localSeconds) > 2) { // Tolerância de 2 segundos
-                        localSeconds = firebaseSeconds;
-                        // O setInterval já está ativo, ele continuará a partir deste novo valor
-                    }
-                } else if (!firebaseTimerRunning && !overlayState.timerRunning) {
-                    // Timer PARADO em ambos: Apenas garante que o tempo exibido esteja sincronizado
+                    localSeconds = firebaseSeconds; // Sincroniza o tempo finalizado
+                } else if (!firebaseTimerRunning && !overlayState.timerRunning && localSeconds !== firebaseSeconds) {
+                    // Timer PARADO no Firebase e o tempo foi RESETADO ou AJUSTADO no controlador
                     localSeconds = firebaseSeconds;
                 }
-                overlayState.timerRunning = firebaseTimerRunning; // Atualiza o estado de rodando para o próximo ciclo
-                // FIM DA LÓGICA DO CRONÔMETRO
+                // Se o timer já está rodando localmente e o Firebase continua enviando `timerRunning: true`,
+                // não faz nada para não interromper a contagem independente.
+
+                overlayState.timerRunning = firebaseTimerRunning; // Atualiza o estado para o próximo ciclo
+                // FIM DA NOVA LÓGICA DO CRONÔMETRO
                 
                 renderUI();
             } else {
