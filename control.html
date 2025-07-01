@@ -2,167 +2,180 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Aquiles Overlay PRO - Controlador</title>
+  <title>Aquiles Overlay PRO - Controlador Blackmagic</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --placar-bg-rgb: 34, 34, 34; 
-      --placar-opacity: 0.9; 
-      --placar-text: white;
-      --placar-border: #555;
-      --placar-timer-color: #0ff;
-      --highlight-color: #0ff;
-      --panel-bg: #1c1c1c; 
-      --section-bg: #282828; 
-      --button-hover-brightness: 1.2; 
+      --bg-dark: #121212;
+      --bg-medium: #1e1e1e;
+      --bg-light: #2c2c2c;
+      --text-light: #e0e0e0;
+      --text-dark: #a0a0a0;
+      --border-color: #3a3a3a;
+      --accent-blue: #007bff;
+      --accent-green: #28a745;
+      --accent-red: #dc3545;
+      --accent-yellow: #ffc107;
+      --accent-purple: #6f42c1;
+      --button-shadow: rgba(0, 0, 0, 0.4);
+      --input-bg: #222222;
+      --input-border: #444444;
+      --input-focus-border: #666666;
+      --hover-brightness: 1.1;
+      --active-brightness: 0.9;
     }
 
     body {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #0d1117;
-      color: white;
+      font-family: 'Montserrat', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-light);
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 15px;
+      padding: 20px;
       box-sizing: border-box;
-      overflow-x: hidden;
       min-height: 100vh;
     }
 
     .control-panel-container {
-        width: 100%;
-        max-width: 900px;
-        margin-top: 20px;
-        z-index: 1;
+      width: 100%;
+      max-width: 1100px; /* Aumentado um pouco para acomodar mais conteúdo */
+      margin-top: 20px;
+      z-index: 1;
     }
 
     .painel {
-      padding: 20px;
-      background: var(--panel-bg);
-      border-radius: 12px;
+      padding: 25px;
+      background: var(--bg-medium);
+      border-radius: 15px;
       box-sizing: border-box;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center; 
-      gap: 25px; 
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
-    }
-    .painel > div {
-      flex: 1 1 calc(50% - 25px); 
-      min-width: 300px; 
-      background: var(--section-bg);
-      padding: 18px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-      border: 1px solid #3a3a3a;
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-    }
-    .painel > div.main-section {
-        flex-basis: 100%; 
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 15px; 
-    }
-    .painel > div.main-section .placar-controls,
-    .painel > div.main-section .timer-controls {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap; 
-        gap: 10px; 
-        width: 100%;
+      display: grid; /* Usando CSS Grid para melhor layout */
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border-color);
     }
 
-    @media (max-width: 768px) {
-      .painel > div {
-        flex: 1 1 100%; 
-      }
+    .painel > div {
+      background: var(--bg-light);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px var(--button-shadow);
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Ajustes para seções específicas no grid */
+    .painel > div.main-section,
+    .painel > div.full-width {
+      grid-column: 1 / -1; /* Ocupa todas as colunas */
+    }
+
+    .section-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 24px;
+      color: var(--accent-blue);
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--accent-blue);
+      width: 100%;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    .control-group {
+      width: 100%;
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .control-group.inline-buttons {
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .control-group label {
+      font-weight: 600;
+      color: var(--text-dark);
+      font-size: 1.05em;
+      margin-bottom: 5px;
+      text-align: center;
     }
 
     .btn {
-      padding: 10px 18px;
-      margin: 0; 
-      font-size: 18px;
+      padding: 12px 22px;
+      font-size: 17px;
+      font-weight: 600;
       border: none;
-      border-radius: 6px;
-      background: #007bff;
-      color: white;
+      border-radius: 8px;
       cursor: pointer;
-      transition: background 0.3s ease, transform 0.1s ease;
-      white-space: nowrap; 
+      transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+      white-space: nowrap;
+      box-shadow: 0 3px 8px var(--button-shadow);
     }
-    .btn:hover { 
-      filter: brightness(var(--button-hover-brightness)); 
-      transform: translateY(-1px);
+
+    .btn:hover {
+      filter: brightness(var(--hover-brightness));
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px var(--button-shadow);
     }
+
     .btn:active {
       transform: translateY(1px);
+      filter: brightness(var(--active-brightness));
+      box-shadow: 0 2px 5px var(--button-shadow);
     }
-    .btn.red { background: #dc3545; }
-    .btn.red:hover { background: #c82333; }
-    .btn.yellow { background: #ffc107; color: black; }
-    .btn.yellow:hover { background: #e0a800; }
-    .btn.green { background: #28a745; }
-    .btn.green:hover { background: #218838; }
-    .btn.purple { background: #6f42c1; }
-    .btn.purple:hover { background: #5a34a0; }
-    .btn.dark-gray { background: #343a40; }
-    .btn.dark-gray:hover { background: #23272b; }
 
-    .section-title {
-      margin-top: 5px; 
-      margin-bottom: 18px;
-      font-weight: bold;
-      color: var(--highlight-color);
-      font-size: 22px;
-      border-bottom: 2px solid var(--highlight-color);
-      padding-bottom: 8px;
+    .btn.blue { background: var(--accent-blue); color: white; }
+    .btn.green { background: var(--accent-green); color: white; }
+    .btn.red { background: var(--accent-red); color: white; }
+    .btn.yellow { background: var(--accent-yellow); color: #333; }
+    .btn.purple { background: var(--accent-purple); color: white; }
+    .btn.gray { background: #555; color: white; }
+    .btn.dark-gray { background: #3a3a3a; color: var(--text-light); }
+
+    input[type="text"],
+    input[type="number"] {
+      width: calc(100% - 20px);
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--input-border);
+      background-color: var(--input-bg);
+      color: var(--text-light);
+      font-size: 16px;
       text-align: center;
-      text-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
-      width: 100%; 
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      font-family: 'Roboto Mono', monospace; /* Fonte monoespaçada para números */
     }
-    .control-group {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px; 
-        width: 100%;
-        margin-bottom: 10px;
+    input[type="text"]:focus,
+    input[type="number"]:focus {
+      border-color: var(--input-focus-border);
+      box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
     }
-    .control-group.inline-buttons {
-        flex-direction: row; 
-        justify-content: center;
-        flex-wrap: wrap;
+
+    input[type="file"] {
+      width: calc(100% - 20px);
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: var(--text-dark);
+      background-color: var(--input-bg);
+      border-radius: 6px;
+      padding: 8px;
+      border: 1px solid var(--input-border);
     }
-    .control-group label {
-        font-weight: bold;
-        margin-bottom: 5px;
-    }
-    .control-group input[type="text"] {
-        width: calc(100% - 20px); 
-        padding: 8px;
-        border-radius: 6px;
-        border: 1px solid #555;
-        background-color: #3a3a3a;
-        color: white;
-        font-size: 16px;
-        text-align: center;
-    }
-    .control-group input[type="file"] {
-        width: calc(100% - 20px);
-        margin-bottom: 10px;
-        font-size: 14px;
-        color: #bbb;
-        background-color: #3a3a3a;
-        border-radius: 6px;
-        padding: 8px;
-    }
-    .control-group input[type="file"]::-webkit-file-upload-button {
-      background-color: #007bff;
+    input[type="file"]::-webkit-file-upload-button {
+      background-color: var(--accent-blue);
       color: white;
       border: none;
       padding: 8px 12px;
@@ -171,129 +184,143 @@
       margin-right: 10px;
       transition: background-color 0.2s ease;
     }
-    .control-group input[type="file"]::-webkit-file-upload-button:hover {
+    input[type="file"]::-webkit-file-upload-button:hover {
       background-color: #0056b3;
     }
-    .control-group input[type="range"] {
-        width: calc(100% - 20px);
-        -webkit-appearance: none;
-        height: 8px;
-        border-radius: 5px;
-        background: #555;
-        outline: none;
-        opacity: 0.7;
-        transition: opacity .2s;
+
+    input[type="range"] {
+      width: calc(100% - 20px);
+      -webkit-appearance: none;
+      height: 10px;
+      border-radius: 5px;
+      background: var(--input-border);
+      outline: none;
+      opacity: 0.9;
+      transition: opacity .2s;
     }
 
-    .control-group input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: var(--highlight-color);
-        cursor: pointer;
-        box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--accent-blue);
+      margin-top: -6px; /* Ajuste para centralizar o thumb */
+      border: 2px solid var(--bg-light);
     }
-    .control-group input[type="range"]::-moz-range-thumb {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: var(--highlight-color);
-        cursor: pointer;
-        box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+    input[type="range"]::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--accent-blue);
+      border: 2px solid var(--bg-light);
     }
-    .control-group input[type="color"] {
+
+    input[type="color"] {
         -webkit-appearance: none;
         -moz-appearance: none;
         appearance: none;
-        width: 60px; /* Largura ajustada para o color picker */
-        height: 30px; /* Altura ajustada */
+        width: 60px;
+        height: 35px;
         border: none;
         border-radius: 5px;
         padding: 0;
         cursor: pointer;
         background: transparent;
     }
-    .control-group input[type="color"]::-webkit-color-swatch-wrapper {
+    input[type="color"]::-webkit-color-swatch-wrapper {
         padding: 0;
     }
-    .control-group input[type="color"]::-webkit-color-swatch {
-        border: 1px solid #555;
+    input[type="color"]::-webkit-color-swatch {
+        border: 2px solid var(--input-border);
         border-radius: 5px;
     }
-    .control-group input[type="color"]::-moz-color-swatch-wrapper {
+    input[type="color"]::-moz-color-swatch-wrapper {
         padding: 0;
     }
-    .control-group input[type="color"]::-moz-color-swatch {
-        border: 1px solid #555;
+    input[type="color"]::-moz-color-swatch {
+        border: 2px solid var(--input-border);
         border-radius: 5px;
     }
     .control-group .color-picker-wrapper {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 15px;
         width: 100%;
         justify-content: center;
     }
-
+    .color-picker-wrapper span {
+        font-size: 0.9em;
+        color: var(--text-dark);
+    }
 
     hr {
-        border: none;
-        border-top: 1px solid #444;
-        width: 80%;
-        margin: 15px 0;
+      border: none;
+      border-top: 1px solid var(--border-color);
+      width: 90%;
+      margin: 20px 0;
     }
 
     .overlay-link-container {
-        background-color: #1a1a1a;
-        border: 1px solid #444;
-        border-radius: 8px;
-        padding: 15px;
-        margin-top: 20px;
-        text-align: center;
-        word-break: break-all;
+      background-color: var(--bg-light);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 25px;
+      text-align: center;
+      word-break: break-all;
+      box-shadow: 0 4px 12px var(--button-shadow);
+      width: 100%;
     }
 
     .overlay-link-container label {
-        font-weight: bold;
-        color: var(--highlight-color);
-        font-size: 1.1em;
-        margin-bottom: 10px;
-        display: block;
+      font-weight: 700;
+      color: var(--accent-blue);
+      font-size: 1.2em;
+      margin-bottom: 12px;
+      display: block;
     }
 
     .overlay-link-container p {
-        font-size: 0.9em;
-        color: #bbb;
-        margin-top: 5px;
+      font-size: 0.95em;
+      color: var(--text-dark);
+      margin-top: 8px;
     }
 
     .overlay-link-container a {
-        color: #8affa1; 
-        text-decoration: none;
-        font-weight: bold;
-        font-size: 1.05em;
-        word-break: break-all;
+      color: #7aff9b; /* Um verde/azul mais vibrante */
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1em;
+      word-break: break-all;
+      font-family: 'Roboto Mono', monospace;
     }
 
     .overlay-link-container a:hover {
-        text-decoration: underline;
+      text-decoration: underline;
+      filter: brightness(1.2);
     }
 
     .overlay-link-container button {
-        margin-top: 10px;
-        padding: 8px 15px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.2s;
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: var(--accent-blue);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      box-shadow: 0 2px 5px var(--button-shadow);
     }
 
     .overlay-link-container button:hover {
-        background-color: #0056b3;
+      background-color: #0056b3;
+      transform: translateY(-1px);
     }
   </style>
 </head>
@@ -301,29 +328,29 @@
   <div class="control-panel-container" id="controlPanelContainer">
     <div class="painel">
       <div class="main-section">
-        <div class="section-title">Controle Principal</div>
+        <div class="section-title">Controle Principal do Placar</div>
 
         <div class="overlay-link-container">
             <label>Link da Overlay para Transmissão:</label>
             <a id="overlayLinkDisplay" href="#" target="_blank"></a>
-            <p id="currentNarratorIdDisplay" style="font-size: 0.9em; color: #ccc;">ID Atual: Carregando...</p>
+            <p id="currentNarratorIdDisplay">ID Atual: Carregando...</p>
             <button onclick="copyOverlayLink()">Copiar Link</button>
         </div>
         <hr>
 
         <div class="control-group">
-            <label>Placar:</label>
-            <div class="placar-controls">
-                <button class="btn green" onclick="alterarPlacar('1', 1, true)">+ Time 1</button>
-                <button class="btn red" onclick="alterarPlacar('1', -1, false)">- Time 1</button>
-                <button class="btn green" onclick="alterarPlacar('2', 1, true)">+ Time 2</button>
-                <button class="btn red" onclick="alterarPlacar('2', -1, false)">- Time 2</button>
+            <label>Controle de Placar:</label>
+            <div class="inline-buttons">
+                <button class="btn green" onclick="alterarPlacar('1', 1, true)">+ Gol Time 1</button>
+                <button class="btn red" onclick="alterarPlacar('1', -1, false)">- Gol Time 1</button>
+                <button class="btn green" onclick="alterarPlacar('2', 1, true)">+ Gol Time 2</button>
+                <button class="btn red" onclick="alterarPlacar('2', -1, false)">- Gol Time 2</button>
             </div>
         </div>
         
         <div class="control-group">
-            <label>Cronômetro:</label>
-            <div class="timer-controls">
+            <label>Controle de Cronômetro:</label>
+            <div class="inline-buttons">
                 <button class="btn green" onclick="startTimer()">Iniciar</button>
                 <button class="btn yellow" onclick="pauseTimer()">Pausar</button>
                 <button class="btn red" onclick="resetTimer()">Resetar</button>
@@ -333,10 +360,10 @@
         </div>
 
       <div>
-        <div class="section-title">Nomes e Imagens</div>
+        <div class="section-title">Nomes e Imagens dos Times</div>
         <div class="control-group">
-            <label for="nome1_input_panel">Nome Time 1:</label>
-            <input type="text" id="nome1_input_panel" placeholder="Nome Completo Time 1">
+            <label for="nome1_input_panel">Nome Completo Time 1:</label>
+            <input type="text" id="nome1_input_panel" placeholder="Ex: ATLÉTICO MINEIRO">
         </div>
         <div class="control-group">
             <label for="nomeAbbr1_input_panel">Abreviação Time 1 (3 letras):</label>
@@ -348,8 +375,8 @@
         </div>
         <hr>
         <div class="control-group">
-            <label for="nome2_input_panel">Nome Time 2:</label>
-            <input type="text" id="nome2_input_panel" placeholder="Nome Completo Time 2">
+            <label for="nome2_input_panel">Nome Completo Time 2:</label>
+            <input type="text" id="nome2_input_panel" placeholder="Ex: FLAMENGO">
         </div>
         <div class="control-group">
             <label for="nomeAbbr2_input_panel">Abreviação Time 2 (3 letras):</label>
@@ -359,7 +386,10 @@
             <label for="uploadEscudo2">Escudo Time 2:</label>
             <input type="file" id="uploadEscudo2" accept="image/*" onchange="loadEscudo(event, '2')">
         </div>
-        <hr>
+      </div>
+
+      <div>
+        <div class="section-title">Logotipo Central</div>
         <div class="control-group">
             <label for="uploadLogoOverlay">Sua Logo (aparece no meio do placar):</label>
             <input type="file" id="uploadLogoOverlay" accept="image/*" onchange="loadLogo(event)">
@@ -369,58 +399,49 @@
       <div>
         <div class="section-title">Controle de Período</div>
         <div class="control-group inline-buttons">
-            <button class="btn green" onclick="nextPeriod()">Próximo</button>
-            <button class="btn yellow" onclick="setPeriod(1)">1º Tempo</button>
-            <button class="btn yellow" onclick="setPeriod(2)">2º Tempo</button>
-            <button class="btn yellow" onclick="setPeriod(3)">Prorrogação</button>
-            <button class="btn yellow" onclick="setPeriod(4)">Intervalo</button>
-            <button class="btn red" onclick="setPeriod(0)">Resetar</button>
+            <button class="btn blue" onclick="nextPeriod()">Próximo Período</button>
+            <button class="btn gray" onclick="setPeriod(1)">1º Tempo</button>
+            <button class="btn gray" onclick="setPeriod(2)">2º Tempo</button>
+            <button class="btn gray" onclick="setPeriod(3)">Prorrogação</button>
+            <button class="btn gray" onclick="setPeriod(4)">Intervalo</button>
+            <button class="btn red" onclick="setPeriod(0)">Parado</button>
         </div>
       </div>
 
       <div>
-        <div class="section-title">Cartões</div>
+        <div class="section-title">Controle de Cartões</div>
         <div class="control-group inline-buttons">
             <button class="btn yellow" onclick="addCartao('1', 'amarelo')">Amarelo T1</button>
             <button class="btn red" onclick="addCartao('1', 'vermelho')">Vermelho T1</button>
-        </div>
-        <div class="control-group inline-buttons">
-            <button class="btn yellow" onclick="addCartao('2', 'amarelo')">Amarelo T2</button>
-            <button class="btn red" onclick="addCartao('2', 'vermelho')">Vermelho T2</button>
-        </div>
-        <hr>
-        <div class="control-group inline-buttons">
             <button class="btn dark-gray" onclick="resetCards('1', 'amarelo')">Limpar Amarelo T1</button>
             <button class="btn dark-gray" onclick="resetCards('1', 'vermelho')">Limpar Vermelho T1</button>
         </div>
         <div class="control-group inline-buttons">
+            <button class="btn yellow" onclick="addCartao('2', 'amarelo')">Amarelo T2</button>
+            <button class="btn red" onclick="addCartao('2', 'vermelho')">Vermelho T2</button>
             <button class="btn dark-gray" onclick="resetCards('2', 'amarelo')">Limpar Amarelo T2</button>
             <button class="btn dark-gray" onclick="resetCards('2', 'vermelho')">Limpar Vermelho T2</button>
         </div>
       </div>
 
-      <div style="flex-basis: 100%;">
-        <div class="section-title">Disputa de Pênaltis</div>
+      <div class="full-width">
+        <div class="section-title">Modo Disputa de Pênaltis</div>
         <div class="control-group inline-buttons">
           <button class="btn purple" onclick="togglePenaltyMode(true)">Ativar Modo Pênaltis</button>
           <button class="btn dark-gray" onclick="togglePenaltyMode(false)">Desativar Modo Pênaltis</button>
+          <button class="btn red" onclick="resetPenalties()">Resetar Pênaltis</button>
         </div>
         <hr>
         <div class="control-group inline-buttons">
             <button class="btn green" onclick="addPenalty('1', 'convertido')">Pênalti T1 GOL</button>
-            <button class="btn red" onclick="addPenalty('1', 'perdido')">Pênalti T1 PERD</button>
-        </div>
-        <div class="control-group inline-buttons">
+            <button class="btn red" onclick="addPenalty('1', 'perdido')">Pênalti T1 ERRO</button>
             <button class="btn green" onclick="addPenalty('2', 'convertido')">Pênalti T2 GOL</button>
-            <button class="btn red" onclick="addPenalty('2', 'perdido')">Pênalti T2 PERD</button>
-        </div>
-        <div class="control-group inline-buttons" style="margin-top: 15px;">
-            <button class="btn dark-gray" onclick="resetPenalties()">Resetar Pênaltis</button>
+            <button class="btn red" onclick="addPenalty('2', 'perdido')">Pênalti T2 ERRO</button>
         </div>
       </div>
 
       <div>
-        <div class="section-title">Controles Globais</div>
+        <div class="section-title">Personalização do Placar</div>
         <div class="control-group">
             <label for="placarOpacitySlider">Transparência do Placar:</label>
             <input type="range" id="placarOpacitySlider" min="0" max="100" value="90" 
@@ -430,12 +451,12 @@
             <label for="fontColorPicker">Cor da Fonte do Placar:</label>
             <div class="color-picker-wrapper">
                 <input type="color" id="fontColorPicker" value="#FFFFFF" onchange="updateFontColor(this.value)">
-                <span>(afeta texto principal)</span>
+                <span>(Texto, números e abreviações)</span>
             </div>
         </div>
         <div class="control-group inline-buttons">
-            <button class="btn purple" onclick="togglePlacarTheme()">Alternar Cor Placar</button>
-            <button class="btn dark-gray" onclick="toggleOverlayVisibility()">Ocultar/Mostrar Placar</button>
+            <button class="btn blue" onclick="togglePlacarTheme()">Trocar Tema de Cor</button>
+            <button class="btn dark-gray" onclick="toggleOverlayVisibility()">Ocultar/Mostrar Overlay</button>
         </div>
       </div>
 
@@ -471,7 +492,7 @@
       timerRunning: false,
       placarThemeIndex: 0,
       placarOpacity: 90, 
-      fontColor: '#FFFFFF', // Nova propriedade para a cor da fonte
+      fontColor: '#E0E0E0', // Cor da fonte padrão para o estilo Blackmagic
       penaltyModeActive: false,
       activeAnimation: null, 
       currentPeriod: 1,
@@ -567,7 +588,7 @@
                 
                 // Seta valores padrão se não existirem no Firebase
                 overlayState.placarOpacity = data.placarOpacity !== undefined ? data.placarOpacity : 90;
-                overlayState.fontColor = data.fontColor || '#FFFFFF'; // Padrão branco
+                overlayState.fontColor = data.fontColor || '#E0E0E0'; // Padrão para Blackmagic Style
                 
                 // Atualiza o estado local com os dados do Firebase, mantendo a referência do objeto
                 Object.assign(overlayState, data);
@@ -612,9 +633,9 @@
 
       const toggleButton = document.querySelector('.btn.dark-gray[onclick="toggleOverlayVisibility()"]');
       if (overlayState.isVisible) {
-        if (toggleButton) toggleButton.innerText = 'Ocultar Placar na Transmissão';
+        if (toggleButton) toggleButton.innerText = 'Ocultar Overlay';
       } else {
-        if (toggleButton) toggleButton.innerText = 'Mostrar Placar na Transmissão';
+        if (toggleButton) toggleButton.innerText = 'Mostrar Overlay';
       }
     }
 
@@ -774,9 +795,16 @@
 
     function nextPeriod() {
         if (!overlayStateRef) { console.error("Firebase não conectado."); return; }
-        overlayState.currentPeriod = (overlayState.currentPeriod % 5) + 1; 
+        // Se estiver em 'Parado' (0), vai para 1º T. Senão, avança normalmente.
+        if (overlayState.currentPeriod === 0) {
+            overlayState.currentPeriod = 1;
+        } else {
+            overlayState.currentPeriod = (overlayState.currentPeriod % 5) + 1;
+            if (overlayState.currentPeriod === 0) overlayState.currentPeriod = 1; // Evita voltar para 0 a menos que seja explicitamente setado
+        }
         saveState();
     }
+
 
     function setPeriod(period) {
         if (!overlayStateRef) { console.error("Firebase não conectado."); return; }
@@ -812,7 +840,7 @@
             overlayState.penalties[team] = [];
         }
         
-        if (overlayState.penalties[team].length < 5) { 
+        if (overlayState.penalties[team].length < 5) { // Limite de 5 pênaltis padrão
             overlayState.penalties[team].push(result === 'convertido' ? 'green' : 'red');
             saveState();
         } else {
@@ -836,23 +864,19 @@
     function triggerGoalAnimation() {
         if (!overlayStateRef) { console.error("Firebase não conectado."); return; }
         
-        // Garante que qualquer animação anterior seja limpa para não bugar
         if (animationTimeoutController) {
             clearTimeout(animationTimeoutController);
             animationTimeoutController = null;
         }
 
-        // 1. Ativa a animação e salva o estado
         overlayState.activeAnimation = 'goalAnimation';
         saveState(); 
 
-        // 2. Define um timeout para DESATIVAR a animação
-        // O tempo aqui deve ser um pouco maior que a duração da animação CSS
         animationTimeoutController = setTimeout(() => {
             overlayState.activeAnimation = null; 
-            saveState(); // Salva novamente para que a overlay volte ao normal
-            animationTimeoutController = null; // Limpa o controlador
-        }, 2200); // 2.2 segundos, um pouco mais que os 2s da animação
+            saveState(); 
+            animationTimeoutController = null; 
+        }, 2200); 
     }
   </script>
 </body>
