@@ -41,38 +41,78 @@
 
     .control-panel-container {
       width: 100%;
-      max-width: 1100px; /* Aumentado um pouco para acomodar mais conteúdo */
+      max-width: 900px;
       margin-top: 20px;
       z-index: 1;
+      display: flex;
+      flex-direction: column;
     }
 
+    .tab-navigation {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      background: var(--bg-medium);
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      overflow: hidden; /* Garante que os cantos arredondados funcionem */
+    }
+
+    .tab-button {
+      flex: 1;
+      padding: 15px 10px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-dark);
+      background-color: var(--bg-medium);
+      border: none;
+      border-right: 1px solid var(--border-color); /* Separador entre botões */
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tab-button:last-child {
+      border-right: none;
+    }
+
+    .tab-button:hover {
+      background-color: var(--bg-light);
+      color: var(--text-light);
+    }
+
+    .tab-button.active {
+      background-color: var(--accent-blue);
+      color: white;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+      border-right-color: var(--accent-blue);
+      border-left-color: var(--accent-blue);
+    }
+    
     .painel {
       padding: 25px;
       background: var(--bg-medium);
       border-radius: 15px;
       box-sizing: border-box;
-      display: grid; /* Usando CSS Grid para melhor layout */
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 25px;
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
       border: 1px solid var(--border-color);
     }
 
-    .painel > div {
-      background: var(--bg-light);
+    .tab-content {
+      display: none; /* Esconde todas as abas por padrão */
       padding: 20px;
+      background: var(--bg-light);
       border-radius: 10px;
       box-shadow: 0 4px 12px var(--button-shadow);
       border: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      flex-direction: column; /* Para organizar os grupos dentro */
+      gap: 20px; /* Espaçamento entre os grupos de controle */
     }
 
-    /* Ajustes para seções específicas no grid */
-    .painel > div.main-section,
-    .painel > div.full-width {
-      grid-column: 1 / -1; /* Ocupa todas as colunas */
+    .tab-content.active {
+      display: flex; /* Mostra a aba ativa */
     }
 
     .section-title {
@@ -90,7 +130,7 @@
 
     .control-group {
       width: 100%;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -156,7 +196,7 @@
       text-align: center;
       outline: none;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
-      font-family: 'Roboto Mono', monospace; /* Fonte monoespaçada para números */
+      font-family: 'Roboto Mono', monospace;
     }
     input[type="text"]:focus,
     input[type="number"]:focus {
@@ -208,7 +248,7 @@
       background: var(--accent-blue);
       cursor: pointer;
       box-shadow: 0 0 10px var(--accent-blue);
-      margin-top: -6px; /* Ajuste para centralizar o thumb */
+      margin-top: -6px;
       border: 2px solid var(--bg-light);
     }
     input[type="range"]::-moz-range-thumb {
@@ -267,36 +307,36 @@
     }
 
     .overlay-link-container {
-      background-color: var(--bg-light);
-      border: 1px solid var(--border-color);
+      background-color: var(--input-bg);
+      border: 1px solid var(--input-border);
       border-radius: 10px;
-      padding: 20px;
-      margin-top: 25px;
+      padding: 15px;
+      margin-top: 15px;
       text-align: center;
       word-break: break-all;
-      box-shadow: 0 4px 12px var(--button-shadow);
+      box-shadow: 0 2px 8px var(--button-shadow);
       width: 100%;
     }
 
     .overlay-link-container label {
       font-weight: 700;
       color: var(--accent-blue);
-      font-size: 1.2em;
-      margin-bottom: 12px;
+      font-size: 1.1em;
+      margin-bottom: 10px;
       display: block;
     }
 
     .overlay-link-container p {
-      font-size: 0.95em;
+      font-size: 0.9em;
       color: var(--text-dark);
-      margin-top: 8px;
+      margin-top: 5px;
     }
 
     .overlay-link-container a {
-      color: #7aff9b; /* Um verde/azul mais vibrante */
+      color: #7aff9b;
       text-decoration: none;
       font-weight: 600;
-      font-size: 1.1em;
+      font-size: 1em;
       word-break: break-all;
       font-family: 'Roboto Mono', monospace;
     }
@@ -326,8 +366,15 @@
 </head>
 <body>
   <div class="control-panel-container" id="controlPanelContainer">
+    <div class="tab-navigation">
+      <button class="tab-button active" onclick="openTab(event, 'mainControl')">Placar Principal</button>
+      <button class="tab-button" onclick="openTab(event, 'teamSettings')">Times</button>
+      <button class="tab-button" onclick="openTab(event, 'cardPenalty')">Cartões e Pênaltis</button>
+      <button class="tab-button" onclick="openTab(event, 'generalSettings')">Configurações</button>
+    </div>
+
     <div class="painel">
-      <div class="main-section">
+      <div id="mainControl" class="tab-content active">
         <div class="section-title">Controle Principal do Placar</div>
 
         <div class="overlay-link-container">
@@ -357,9 +404,21 @@
             </div>
         </div>
 
+        <hr>
+        <div class="control-group">
+            <label>Controle de Período:</label>
+            <div class="inline-buttons">
+                <button class="btn blue" onclick="nextPeriod()">Próximo Período</button>
+                <button class="btn gray" onclick="setPeriod(1)">1º Tempo</button>
+                <button class="btn gray" onclick="setPeriod(2)">2º Tempo</button>
+                <button class="btn gray" onclick="setPeriod(3)">Prorrogação</button>
+                <button class="btn gray" onclick="setPeriod(4)">Intervalo</button>
+                <button class="btn red" onclick="setPeriod(0)">Parado</button>
+            </div>
         </div>
+      </div>
 
-      <div>
+      <div id="teamSettings" class="tab-content">
         <div class="section-title">Nomes e Imagens dos Times</div>
         <div class="control-group">
             <label for="nome1_input_panel">Nome Completo Time 1:</label>
@@ -386,29 +445,14 @@
             <label for="uploadEscudo2">Escudo Time 2:</label>
             <input type="file" id="uploadEscudo2" accept="image/*" onchange="loadEscudo(event, '2')">
         </div>
-      </div>
-
-      <div>
-        <div class="section-title">Logotipo Central</div>
+        <hr>
         <div class="control-group">
             <label for="uploadLogoOverlay">Sua Logo (aparece no meio do placar):</label>
             <input type="file" id="uploadLogoOverlay" accept="image/*" onchange="loadLogo(event)">
         </div>
       </div>
 
-      <div>
-        <div class="section-title">Controle de Período</div>
-        <div class="control-group inline-buttons">
-            <button class="btn blue" onclick="nextPeriod()">Próximo Período</button>
-            <button class="btn gray" onclick="setPeriod(1)">1º Tempo</button>
-            <button class="btn gray" onclick="setPeriod(2)">2º Tempo</button>
-            <button class="btn gray" onclick="setPeriod(3)">Prorrogação</button>
-            <button class="btn gray" onclick="setPeriod(4)">Intervalo</button>
-            <button class="btn red" onclick="setPeriod(0)">Parado</button>
-        </div>
-      </div>
-
-      <div>
+      <div id="cardPenalty" class="tab-content">
         <div class="section-title">Controle de Cartões</div>
         <div class="control-group inline-buttons">
             <button class="btn yellow" onclick="addCartao('1', 'amarelo')">Amarelo T1</button>
@@ -422,9 +466,7 @@
             <button class="btn dark-gray" onclick="resetCards('2', 'amarelo')">Limpar Amarelo T2</button>
             <button class="btn dark-gray" onclick="resetCards('2', 'vermelho')">Limpar Vermelho T2</button>
         </div>
-      </div>
-
-      <div class="full-width">
+        <hr>
         <div class="section-title">Modo Disputa de Pênaltis</div>
         <div class="control-group inline-buttons">
           <button class="btn purple" onclick="togglePenaltyMode(true)">Ativar Modo Pênaltis</button>
@@ -440,7 +482,7 @@
         </div>
       </div>
 
-      <div>
+      <div id="generalSettings" class="tab-content">
         <div class="section-title">Personalização do Placar</div>
         <div class="control-group">
             <label for="placarOpacitySlider">Transparência do Placar:</label>
@@ -492,7 +534,7 @@
       timerRunning: false,
       placarThemeIndex: 0,
       placarOpacity: 90, 
-      fontColor: '#E0E0E0', // Cor da fonte padrão para o estilo Blackmagic
+      fontColor: '#E0E0E0', 
       penaltyModeActive: false,
       activeAnimation: null, 
       currentPeriod: 1,
@@ -505,8 +547,6 @@
       logoOverlay: '', 
       isVisible: true
     };
-
-    let animationTimeoutController; 
 
     const placarThemes = [
       { rgb: '34, 34, 34', text: 'white', border: '#555', timerColor: '#0ff' }, 
@@ -535,14 +575,14 @@
 
         if (!currentNarratorId) {
             alert('ID do Narrador não encontrado na URL. Redirecionando para a página de login.');
-            window.location.href = 'index.html'; // Redireciona para a tela de login (CAMINHO RELATIVO)
+            window.location.href = 'index.html'; 
             return;
         }
 
         document.getElementById('currentNarratorIdDisplay').innerText = `ID Atual: ${currentNarratorId}`;
         setupFirebaseForNarrator(currentNarratorId);
 
-        // Demais listeners de input (mantidos)
+        // Event Listeners para os inputs
         document.getElementById('nome1_input_panel').addEventListener('input', (e) => {
             overlayState.nome1 = e.target.value;
             saveState();
@@ -551,7 +591,6 @@
             overlayState.nome2 = e.target.value;
             saveState();
         });
-
         document.getElementById('nomeAbbr1_input_panel').addEventListener('input', (e) => {
             overlayState.nomeAbbr1 = e.target.value.toUpperCase().substring(0, 3);
             saveState();
@@ -560,42 +599,51 @@
             overlayState.nomeAbbr2 = e.target.value.toUpperCase().substring(0, 3);
             saveState();
         });
-
         document.getElementById('placarOpacitySlider').addEventListener('input', (e) => {
             updatePlacarOpacity(e.target.value);
         });
-        // Listener para a cor da fonte
         document.getElementById('fontColorPicker').addEventListener('input', (e) => {
             updateFontColor(e.target.value);
         });
+
+        // Abre a primeira aba por padrão
+        document.querySelector('.tab-button').click();
     }
 
     function setupFirebaseForNarrator(narratorId) {
         if (overlayStateRef) {
-            overlayStateRef.off(); // Desconecta qualquer listener anterior
+            overlayStateRef.off(); 
         }
         overlayStateRef = database.ref(`narrators/${narratorId}/overlayState`);
 
         overlayStateRef.on('value', (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
-                if (!data.penalties) {
-                    data.penalties = { '1': [], '2': [] };
-                } else {
-                    if (!data.penalties['1']) data.penalties['1'] = [];
-                    if (!data.penalties['2']) data.penalties['2'] = [];
-                }
                 
-                // Seta valores padrão se não existirem no Firebase
+                // Trata caso de valores nulos ou indefinidos no Firebase
+                overlayState.placar = data.placar || { '1': 0, '2': 0 };
+                overlayState.cards = data.cards || { '1': { 'amarelo': 0, 'vermelho': 0 }, '2': { 'amarelo': 0, 'vermelho': 0 } };
+                overlayState.penalties = data.penalties || { '1': [], '2': [] };
+                overlayState.seconds = data.seconds !== undefined ? data.seconds : 0;
+                overlayState.timerRunning = data.timerRunning !== undefined ? data.timerRunning : false;
+                overlayState.placarThemeIndex = data.placarThemeIndex !== undefined ? data.placarThemeIndex : 0;
                 overlayState.placarOpacity = data.placarOpacity !== undefined ? data.placarOpacity : 90;
-                overlayState.fontColor = data.fontColor || '#E0E0E0'; // Padrão para Blackmagic Style
-                
-                // Atualiza o estado local com os dados do Firebase, mantendo a referência do objeto
-                Object.assign(overlayState, data);
+                overlayState.fontColor = data.fontColor || '#E0E0E0';
+                overlayState.penaltyModeActive = data.penaltyModeActive !== undefined ? data.penaltyModeActive : false;
+                overlayState.activeAnimation = data.activeAnimation || null;
+                overlayState.currentPeriod = data.currentPeriod !== undefined ? data.currentPeriod : 1;
+                overlayState.nome1 = data.nome1 || '';
+                overlayState.nome2 = data.nome2 || '';
+                overlayState.nomeAbbr1 = data.nomeAbbr1 || 'T1';
+                overlayState.nomeAbbr2 = data.nomeAbbr2 || 'T2';
+                overlayState.escudo1 = data.escudo1 || '';
+                overlayState.escudo2 = data.escudo2 || '';
+                overlayState.logoOverlay = data.logoOverlay || '';
+                overlayState.isVisible = data.isVisible !== undefined ? data.isVisible : true;
+
             } else {
                 console.log(`Nó para narrador '${narratorId}' não encontrado. Inicializando estado.`);
-                // Se não há dados, inicializa no Firebase com o estado padrão
-                overlayStateRef.set({ ...overlayState, seconds: 0 })
+                overlayStateRef.set(overlayState)
                     .then(() => console.log("Estado inicial salvo para novo narrador."))
                     .catch(error => console.error("Erro ao inicializar estado no Firebase:", error));
             }
@@ -629,7 +677,7 @@
       document.getElementById('nomeAbbr1_input_panel').value = overlayState.nomeAbbr1;
       document.getElementById('nomeAbbr2_input_panel').value = overlayState.nomeAbbr2;
       document.getElementById('placarOpacitySlider').value = overlayState.placarOpacity;
-      document.getElementById('fontColorPicker').value = overlayState.fontColor; // Seta o valor do color picker
+      document.getElementById('fontColorPicker').value = overlayState.fontColor; 
 
       const toggleButton = document.querySelector('.btn.dark-gray[onclick="toggleOverlayVisibility()"]');
       if (overlayState.isVisible) {
@@ -672,11 +720,10 @@
     function alterarPlacar(time, valor, triggerAnimation = false) {
       if (!overlayStateRef) { console.error("Firebase não conectado."); return; }
 
-      overlayState.placar[time] += valor;
-      if (overlayState.placar[time] < 0) overlayState.placar[time] = 0;
+      overlayState.placar[time] = Math.max(0, overlayState.placar[time] + valor); // Garante que não seja negativo
       
       if (valor > 0 && triggerAnimation) {
-          triggerGoalAnimation();
+          triggerGoalAnimation(); // Chama a função para iniciar a animação
       } else {
           saveState(); 
       }
@@ -795,16 +842,14 @@
 
     function nextPeriod() {
         if (!overlayStateRef) { console.error("Firebase não conectado."); return; }
-        // Se estiver em 'Parado' (0), vai para 1º T. Senão, avança normalmente.
         if (overlayState.currentPeriod === 0) {
             overlayState.currentPeriod = 1;
         } else {
             overlayState.currentPeriod = (overlayState.currentPeriod % 5) + 1;
-            if (overlayState.currentPeriod === 0) overlayState.currentPeriod = 1; // Evita voltar para 0 a menos que seja explicitamente setado
+            if (overlayState.currentPeriod === 0) overlayState.currentPeriod = 1; 
         }
         saveState();
     }
-
 
     function setPeriod(period) {
         if (!overlayStateRef) { console.error("Firebase não conectado."); return; }
@@ -840,44 +885,6 @@
             overlayState.penalties[team] = [];
         }
         
-        if (overlayState.penalties[team].length < 5) { // Limite de 5 pênaltis padrão
+        if (overlayState.penalties[team].length < 5) { 
             overlayState.penalties[team].push(result === 'convertido' ? 'green' : 'red');
             saveState();
-        } else {
-            console.warn(`Limite de 5 pênaltis para o Time ${team} atingido.`);
-        }
-    }
-
-    function resetPenalties() {
-        if (!overlayStateRef) { console.error("Firebase não conectado."); return; }
-        overlayState.penalties['1'] = [];
-        overlayState.penalties['2'] = [];
-        saveState();
-    }
-
-    function toggleOverlayVisibility() {
-      if (!overlayStateRef) { console.error("Firebase não conectado."); return; }
-      overlayState.isVisible = !overlayState.isVisible;
-      saveState();
-    }
-
-    function triggerGoalAnimation() {
-        if (!overlayStateRef) { console.error("Firebase não conectado."); return; }
-        
-        if (animationTimeoutController) {
-            clearTimeout(animationTimeoutController);
-            animationTimeoutController = null;
-        }
-
-        overlayState.activeAnimation = 'goalAnimation';
-        saveState(); 
-
-        animationTimeoutController = setTimeout(() => {
-            overlayState.activeAnimation = null; 
-            saveState(); 
-            animationTimeoutController = null; 
-        }, 2200); 
-    }
-  </script>
-</body>
-  </html>
