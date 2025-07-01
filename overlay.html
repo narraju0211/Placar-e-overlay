@@ -9,7 +9,7 @@
     :root {
       --placar-bg-rgb: 34, 34, 34; 
       --placar-opacity: 0.9; 
-      --placar-text: white; /* Esta será controlada pelo JavaScript */
+      --placar-text: white;
       --placar-border: #555;
       --placar-timer-color: #0ff;
       --highlight-color: #0ff;
@@ -76,7 +76,16 @@
         flex-direction: column;
         width: 100%;
         align-items: center;
-        transition: opacity 0.3s ease-in-out;
+        transition: opacity 0.3s ease-in-out; /* Transição para opacidade */
+    }
+
+    .placar-content-wrapper.hidden-content {
+        opacity: 0;
+        pointer-events: none; /* Desabilita eventos de mouse */
+    }
+    .placar-content-wrapper.visible-content {
+        opacity: 1;
+        pointer-events: auto;
     }
 
     .placar-main-line {
@@ -129,31 +138,32 @@
     }
     .placar-numero {
       font-size: 42px; 
-      font-weight: 800; /* Mais bold */
+      font-weight: 800;
       margin: 0 3px; 
       min-width: 50px; 
       text-align: center;
       flex-shrink: 0;
       text-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
-      font-family: 'Roboto Mono', monospace; /* Fonte monoespaçada para números */
+      font-family: 'Roboto Mono', monospace;
+      color: var(--placar-text); /* Garantir que use a cor da fonte global */
     }
 
     .team-name-abbr {
       font-size: 28px; 
-      font-weight: 600; /* Menos bold que o número */
-      /* color: var(--placar-text); */ /* Removido para usar a cor geral da fonte */
+      font-weight: 600;
       background: rgba(0, 0, 0, 0.4);
       padding: 4px 8px;
       border-radius: 4px;
       text-transform: uppercase; 
       flex-shrink: 0;
       white-space: nowrap;
+      color: var(--placar-text); /* Garantir que use a cor da fonte global */
     }
 
     #cronometro_display,
     #periodoDisplay_display {
       font-size: 24px; 
-      font-weight: 700; /* Bold para o cronômetro */
+      font-weight: 700;
       color: var(--placar-timer-color);
       background: rgba(0, 0, 0, 0.6);
       padding: 4px 10px;
@@ -161,13 +171,13 @@
       white-space: nowrap;
       text-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
       flex-shrink: 0;
-      font-family: 'Roboto Mono', monospace; /* Fonte monoespaçada para cronômetro */
+      font-family: 'Roboto Mono', monospace;
     }
     #periodoDisplay_display {
         font-size: 20px; 
         background: rgba(0, 0, 0, 0.4);
-        /* color: var(--placar-text); */ /* Removido para usar a cor geral da fonte */
-        font-family: 'Montserrat', sans-serif; /* Volta para Montserrat para o texto */
+        color: var(--placar-text); /* Garantir que use a cor da fonte global */
+        font-family: 'Montserrat', sans-serif;
     }
 
     /* Cartões dentro do .placar-group */
@@ -217,6 +227,7 @@
         padding: 4px 10px;
         border-radius: 5px;
         white-space: nowrap;
+        color: var(--placar-text); /* Garantir que use a cor da fonte global */
     }
     .penalty-team-display .escudo {
         width: 55px; 
@@ -243,7 +254,7 @@
       position: absolute; 
       top: 50%; 
       left: 50%;
-      transform: translate(-50%, -50%); 
+      transform: translate(-50%, -50%) scale(0.5); /* Começa menor */
       font-size: 80px; 
       font-weight: 900;
       color: var(--highlight-color); 
@@ -267,17 +278,7 @@
     }
 
     .animated-text.active {
-      animation: fadeInScaleOut 2s ease-out forwards; 
-    }
-
-    /* Controla a visibilidade do conteúdo do placar durante a animação */
-    .placar-content-wrapper.hidden-content {
-        opacity: 0;
-        pointer-events: none;
-    }
-    .placar-content-wrapper.visible-content {
-        opacity: 1;
-        pointer-events: auto;
+      animation: fadeInScaleOut 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; /* Curva de animação mais suave */
     }
 
   </style>
@@ -359,6 +360,7 @@
     let database;
     let overlayStateRef; 
 
+    // Estado local da overlay (refletirá o Firebase, mas o cronômetro é local)
     let overlayState = {
       placar: { '1': 0, '2': 0 },
       cards: { '1': { 'amarelo': 0, 'vermelho': 0 }, '2': { 'amarelo': 0, 'vermelho': 0 } },
@@ -367,7 +369,7 @@
       timerRunning: false,
       placarThemeIndex: 0,
       placarOpacity: 90, 
-      fontColor: '#E0E0E0', // Cor da fonte padrão para o estilo Blackmagic
+      fontColor: '#E0E0E0', 
       penaltyModeActive: false,
       activeAnimation: null, 
       currentPeriod: 1,
@@ -381,8 +383,8 @@
       isVisible: true
     };
 
-    let timerInterval;
-    let localSeconds = 0; // Usado para o cronômetro local para evitar bugs de sincronização
+    let timerInterval = null; // Para o setInterval local
+    let localSeconds = 0; // O tempo que a overlay realmente exibe e avança
 
     const placarThemes = [
       { rgb: '34, 34, 34', text: 'white', border: '#555', timerColor: '#0ff' }, 
@@ -419,13 +421,11 @@
         const goalAnimationElement = document.getElementById('goalAnimation_display');
         goalAnimationElement.addEventListener('animationend', (event) => {
             if (event.animationName === 'fadeInScaleOut') {
+                // Ao final da animação, garante que ela esteja oculta e o placar visível
                 goalAnimationElement.style.visibility = 'hidden';
                 goalAnimationElement.classList.remove('active');
-                
-                // Força a re-renderização completa para garantir que o placar normal apareça
-                // O activeAnimation local será resetado na próxima atualização do Firebase
-                // mas essa renderização imediata ajuda na transição.
-                renderUI(); 
+                document.getElementById('placarContentWrapper').classList.remove('hidden-content');
+                document.getElementById('placarContentWrapper').classList.add('visible-content');
             }
         });
     }
@@ -437,53 +437,55 @@
             if (snapshot.exists()) {
                 const newState = snapshot.val();
                 
-                // Salva o estado anterior do timer para comparação
-                const oldTimerRunning = overlayState.timerRunning;
-                
-                // Atualiza o estado da overlay localmente com os dados do Firebase,
-                // Exceto o 'seconds' e 'timerRunning' que são tratados na lógica abaixo.
-                // Isso garante que todas as outras propriedades sejam atualizadas.
-                Object.keys(newState).forEach(key => {
-                    if (key !== 'seconds' && key !== 'timerRunning') { 
-                        overlayState[key] = newState[key];
-                    }
-                });
+                // Mapeia os dados do Firebase para o estado local, garantindo valores padrão
+                overlayState.placar = newState.placar || { '1': 0, '2': 0 };
+                overlayState.cards = newState.cards || { '1': { 'amarelo': 0, 'vermelho': 0 }, '2': { 'amarelo': 0, 'vermelho': 0 } };
+                overlayState.penalties = newState.penalties || { '1': [], '2': [] };
+                // timerRunning e seconds são tratados separadamente abaixo para o cronômetro
+                overlayState.placarThemeIndex = newState.placarThemeIndex !== undefined ? newState.placarThemeIndex : 0;
+                overlayState.placarOpacity = newState.placarOpacity !== undefined ? newState.placarOpacity : 90;
+                overlayState.fontColor = newState.fontColor || '#E0E0E0';
+                overlayState.penaltyModeActive = newState.penaltyModeActive !== undefined ? newState.penaltyModeActive : false;
+                overlayState.activeAnimation = newState.activeAnimation || null;
+                overlayState.currentPeriod = newState.currentPeriod !== undefined ? newState.currentPeriod : 1;
+                overlayState.nome1 = newState.nome1 || '';
+                overlayState.nome2 = newState.nome2 || '';
+                overlayState.nomeAbbr1 = newState.nomeAbbr1 || 'T1';
+                overlayState.nomeAbbr2 = newState.nomeAbbr2 || 'T2';
+                overlayState.escudo1 = newState.escudo1 || '';
+                overlayState.escudo2 = newState.escudo2 || '';
+                overlayState.logoOverlay = newState.logoOverlay || '';
+                overlayState.isVisible = newState.isVisible !== undefined ? newState.isVisible : true;
 
-                // Garante que penalties existam
-                if (!overlayState.penalties) {
-                    overlayState.penalties = { '1': [], '2': [] };
-                } else {
-                    if (!overlayState.penalties['1']) overlayState.penalties['1'] = [];
-                    if (!overlayState.penalties['2']) overlayState.penalties['2'] = [];
-                }
-                
-                // *** Lógica CORRIGIDA do Cronômetro ***
-                if (newState.timerRunning && !oldTimerRunning) {
-                    // Timer foi LIGADO no controlador: Inicia o timer localmente com o tempo do Firebase
-                    startLocalTimer(newState.seconds);
-                } else if (!newState.timerRunning && oldTimerRunning) {
-                    // Timer foi DESLIGADO no controlador: Para o timer local e sincroniza o tempo final
+                // *** Lógica de Sincronização do Cronômetro (REVISADA) ***
+                const firebaseSeconds = newState.seconds !== undefined ? newState.seconds : 0;
+                const firebaseTimerRunning = newState.timerRunning !== undefined ? newState.timerRunning : false;
+
+                if (firebaseTimerRunning && !overlayState.timerRunning) {
+                    // Timer LIGOU no Firebase: Inicia nosso timer local a partir do tempo do Firebase
+                    startLocalTimer(firebaseSeconds);
+                } else if (!firebaseTimerRunning && overlayState.timerRunning) {
+                    // Timer DESLIGOU no Firebase: Para nosso timer local
                     stopLocalTimer();
-                    localSeconds = newState.seconds; 
-                } else if (newState.timerRunning && oldTimerRunning) {
-                    // Timer ESTÁ rodando em ambos (controlador e overlay):
-                    // Apenas atualiza o localSeconds se houver uma diferença > 1 segundo,
-                    // mas NÃO reinicia o setInterval.
-                    if (Math.abs(newState.seconds - localSeconds) > 1) { 
-                        localSeconds = newState.seconds; // Apenas ajusta o valor
-                        // O setInterval já está ativo e continuará a partir deste novo localSeconds
+                    localSeconds = firebaseSeconds; // Sincroniza uma última vez ao parar
+                } else if (firebaseTimerRunning && overlayState.timerRunning) {
+                    // Timer JÁ ESTÁ RODANDO em ambos: Sincroniza se houver uma diferença grande
+                    // Isso cobre casos de latência ou o controlador tendo resetado o tempo
+                    if (Math.abs(firebaseSeconds - localSeconds) > 2) { // Tolerância de 2 segundos
+                        localSeconds = firebaseSeconds;
+                        // O setInterval já está ativo, ele continuará a partir deste novo valor
                     }
-                } else if (!newState.timerRunning && !oldTimerRunning) {
-                    // Timer ESTÁ parado em ambos: Apenas sincroniza o tempo
-                    localSeconds = newState.seconds;
+                } else if (!firebaseTimerRunning && !overlayState.timerRunning) {
+                    // Timer PARADO em ambos: Apenas garante que o tempo exibido esteja sincronizado
+                    localSeconds = firebaseSeconds;
                 }
-                // Atualiza o estado de timerRunning para o próximo ciclo de comparação
-                overlayState.timerRunning = newState.timerRunning;
-                // FIM DA LÓGICA CORRIGIDA DO CRONÔMETRO
+                overlayState.timerRunning = firebaseTimerRunning; // Atualiza o estado de rodando para o próximo ciclo
+                // FIM DA LÓGICA DO CRONÔMETRO
                 
                 renderUI();
             } else {
                 console.warn(`Nó para narrador '${narratorId}' não encontrado no Firebase. Aguardando dados do controlador.`);
+                // Opcional: Mostrar uma mensagem na overlay para o usuário
             }
         }, (error) => {
           console.error("Erro ao ler dados do Firebase:", error);
@@ -491,10 +493,11 @@
         });
     }
 
+    // Cronômetro local
     function startLocalTimer(initialSeconds) {
         if (timerInterval) clearInterval(timerInterval); // Limpa qualquer timer anterior
         localSeconds = initialSeconds; 
-        document.getElementById('cronometro_display').innerText = formatTime(localSeconds); 
+        document.getElementById('cronometro_display').innerText = formatTime(localSeconds); // Atualiza imediatamente
 
         timerInterval = setInterval(() => {
             localSeconds++;
@@ -510,7 +513,7 @@
     }
 
     function renderUI() {
-      // Atualiza os dados do placar
+      // Atualiza os elementos do placar
       document.getElementById('placar1_display').innerText = overlayState.placar['1'];
       document.getElementById('placar2_display').innerText = overlayState.placar['2'];
       document.getElementById('nomeAbbr1_display').innerText = overlayState.nomeAbbr1 || 'T1'; 
@@ -526,7 +529,7 @@
       document.getElementById('logoOverlay_display').src = overlayState.logoOverlay || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
       document.getElementById('logoOverlayPenalty_display').src = overlayState.logoOverlay || 'data:image/gif;base64,R0lGODlhAQABAAACADs=';
 
-      document.getElementById('cronometro_display').innerText = formatTime(localSeconds); // Usa localSeconds
+      document.getElementById('cronometro_display').innerText = formatTime(localSeconds); 
 
       renderCards('1');
       renderCards('2');
@@ -546,24 +549,22 @@
       const penaltyContent = document.getElementById('penaltyPlacarContent_display');
       const goalAnimation = document.getElementById('goalAnimation_display');
 
-      // Verifica se a animação deve estar ativa AGORA (recebido do Firebase)
+      // Gerencia a animação e visibilidade do placar
       if (overlayState.activeAnimation === 'goalAnimation') {
-          // Esconde o conteúdo do placar imediatamente (para não piscar)
+          // Esconde o conteúdo do placar e mostra a animação
           placarContentWrapper.classList.add('hidden-content');
           placarContentWrapper.classList.remove('visible-content');
-          // Mostra e ativa a animação
           goalAnimation.style.visibility = 'visible';
           goalAnimation.classList.add('active'); 
       } else {
-          // Se activeAnimation não é 'goalAnimation' (ou é null), garante que a animação esteja escondida
+          // Garante que a animação esteja parada e oculta
           goalAnimation.style.visibility = 'hidden';
-          goalAnimation.classList.remove('active'); // Remove a classe active caso tenha ficado presa
-
-          // Mostra o conteúdo do placar
+          goalAnimation.classList.remove('active'); 
+          
+          // Mostra o conteúdo do placar e decide qual modo (normal/pênalti)
           placarContentWrapper.classList.remove('hidden-content');
           placarContentWrapper.classList.add('visible-content');
 
-          // Decide entre placar normal e pênaltis dentro do wrapper visível
           if (overlayState.penaltyModeActive) {
               normalContent.style.display = 'none';
               penaltyContent.style.display = 'flex'; 
