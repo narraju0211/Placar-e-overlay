@@ -148,8 +148,7 @@
       }
 
       localStorage.setItem('aquilesNarratorId', narratorId);
-      // ALTERADO AQUI: de 'controlador.html' para 'control.html'
-      window.location.href = `control.html?narratorId=${narratorId}`;
+      window.location.href = `controlador.html?narratorId=${narratorId}`;
     }
   </script>
 </body>
@@ -296,14 +295,13 @@
         return;
       }
 
-      // Validação básica para evitar IDs com caracteres especiais que poderiam causar problemas no Firebase
       if (!/^[a-zA-Z0-9_-]+$/.test(narratorId)) {
         errorMessageElement.innerText = 'O ID deve conter apenas letras, números, hífens (-) e underscores (_).';
         return;
       }
 
       localStorage.setItem('aquilesNarratorId', narratorId);
-      // ALTERADO AQUI: de 'controlador.html' para 'control.html'
+      // ESTA LINHA REDIRECIONA PARA 'control.html'
       window.location.href = `control.html?narratorId=${narratorId}`;
     }
   </script>
