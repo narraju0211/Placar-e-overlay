@@ -472,7 +472,7 @@
 
         if (!currentNarratorId) {
             alert('ID do Narrador não encontrado na URL. Redirecionando para a página de login.');
-            window.location.href = 'index.html'; // Redireciona para a tela de login
+            window.location.href = 'index.html'; // Redireciona para a tela de login (CAMINHO RELATIVO)
             return;
         }
 
@@ -572,8 +572,13 @@
 
     function generateOverlayLink(narratorId) {
         const currentPath = window.location.href; 
+        // Esta linha pega o caminho base da URL atual, por exemplo:
+        // Se a URL for https://narraju0211.github.io/Placar-e-overlay/control.html?narratorId=Narraju
+        // overlayBasePath será https://narraju0211.github.io/Placar-e-overlay
         let overlayBasePath = currentPath.substring(0, currentPath.lastIndexOf('/')); 
         
+        // CORREÇÃO AQUI: Aponta para 'overlay.html' (nome padronizado)
+        // O link gerado será, por exemplo: https://narraju0211.github.io/Placar-e-overlay/overlay.html?narratorId=Narraju
         const overlayLink = `${overlayBasePath}/overlay.html?narratorId=${narratorId}`;
         const overlayLinkElement = document.getElementById('overlayLinkDisplay');
 
@@ -802,4 +807,4 @@
     }
   </script>
 </body>
-              </html>
+  </html>
