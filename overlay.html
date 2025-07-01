@@ -8,7 +8,7 @@
     :root {
       --placar-bg-rgb: 34, 34, 34; 
       --placar-opacity: 0.9; 
-      --placar-text: white;
+      --placar-text: white; /* Esta será controlada pelo JavaScript */
       --placar-border: #555;
       --placar-timer-color: #0ff;
       --highlight-color: #0ff;
@@ -61,7 +61,7 @@
       width: 100%;
       box-sizing: border-box;
       border: 1px solid var(--placar-border);
-      color: var(--placar-text);
+      color: var(--placar-text); /* Esta cor será dinâmica */
       position: relative; 
       overflow: hidden; 
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
@@ -139,7 +139,7 @@
     .team-name-abbr {
       font-size: 28px; 
       font-weight: bold;
-      color: var(--placar-text);
+      /* color: var(--placar-text); */ /* Removido para usar a cor geral da fonte */
       background: rgba(0, 0, 0, 0.4);
       padding: 4px 8px;
       border-radius: 4px;
@@ -163,7 +163,7 @@
     #periodoDisplay_display {
         font-size: 20px; 
         background: rgba(0, 0, 0, 0.4);
-        color: var(--placar-text);
+        /* color: var(--placar-text); */ /* Removido para usar a cor geral da fonte */
     }
 
     /* Cartões dentro do .placar-group */
@@ -362,6 +362,7 @@
       timerRunning: false,
       placarThemeIndex: 0,
       placarOpacity: 90, 
+      fontColor: '#FFFFFF', // Nova propriedade para a cor da fonte
       penaltyModeActive: false,
       activeAnimation: null, 
       currentPeriod: 1,
@@ -438,24 +439,9 @@
             if (snapshot.exists()) {
                 const newState = snapshot.val();
                 
-                // CRONÔMETRO: Sincronização e controle local
-                if (newState.timerRunning && !overlayState.timerRunning) {
-                    // Se o timer estava parado e agora está rodando no controlador, inicia localmente
-                    startLocalTimer(newState.seconds);
-                } else if (!newState.timerRunning && overlayState.timerRunning) {
-                    // Se o timer estava rodando e agora está parado, para localmente
-                    stopLocalTimer();
-                    localSeconds = newState.seconds; // Sincroniza o tempo final
-                } else if (newState.timerRunning && overlayState.timerRunning) {
-                    // Se ambos estão rodando, verifica se há uma grande diferença e reseta
-                    if (Math.abs(newState.seconds - localSeconds) > 2) { 
-                         startLocalTimer(newState.seconds); 
-                    }
-                } else if (!newState.timerRunning && !overlayState.timerRunning) {
-                    // Se ambos estão parados, apenas sincroniza o tempo
-                    localSeconds = newState.seconds;
-                }
-
+                // *** CORREÇÃO DO CRONÔMETRO AQUI ***
+                const oldTimerRunning = overlayState.timerRunning;
+                
                 // Garante que penalties existam
                 if (!newState.penalties) {
                     newState.penalties = { '1': [], '2': [] };
@@ -464,13 +450,33 @@
                     if (!newState.penalties['2']) newState.penalties['2'] = [];
                 }
                 
-                // Atualiza o estado da overlay localmente (excluindo seconds para não conflitar)
+                // Atualiza o estado da overlay localmente (excluindo seconds para não conflitar inicialmente)
                 Object.keys(newState).forEach(key => {
                     if (key !== 'seconds') { 
                         overlayState[key] = newState[key];
                     }
                 });
 
+                // Lógica de Sincronização do Cronômetro
+                if (newState.timerRunning && !oldTimerRunning) {
+                    // Timer foi LIGADO no controlador: Inicia o timer localmente com o tempo do Firebase
+                    startLocalTimer(newState.seconds);
+                } else if (!newState.timerRunning && oldTimerRunning) {
+                    // Timer foi DESLIGADO no controlador: Para o timer local e sincroniza o tempo final
+                    stopLocalTimer();
+                    localSeconds = newState.seconds; 
+                } else if (newState.timerRunning && oldTimerRunning) {
+                    // Timer ESTÁ rodando em ambos (controlador e overlay):
+                    // Se houver uma diferença significativa (mais de 1 segundo), reseta o timer local
+                    if (Math.abs(newState.seconds - localSeconds) > 1) { 
+                        startLocalTimer(newState.seconds); // Re-sincroniza
+                    }
+                } else if (!newState.timerRunning && !oldTimerRunning) {
+                    // Timer ESTÁ parado em ambos: Apenas sincroniza o tempo (não precisa iniciar/parar)
+                    localSeconds = newState.seconds;
+                }
+                // FIM DA CORREÇÃO DO CRONÔMETRO
+                
                 renderUI();
             } else {
                 console.warn(`Nó para narrador '${narratorId}' não encontrado no Firebase. Aguardando dados do controlador.`);
@@ -527,6 +533,10 @@
 
       applyPlacarTheme();
 
+      // Aplica a cor da fonte geral
+      document.documentElement.style.setProperty('--placar-text', overlayState.fontColor);
+
+
       const placarContentWrapper = document.getElementById('placarContentWrapper');
       const normalContent = document.getElementById('normalPlacarContent_display');
       const penaltyContent = document.getElementById('penaltyPlacarContent_display');
@@ -578,7 +588,7 @@
       const theme = placarThemes[overlayState.placarThemeIndex];
       document.documentElement.style.setProperty('--placar-bg-rgb', theme.rgb);
       document.documentElement.style.setProperty('--placar-opacity', (overlayState.placarOpacity / 100).toFixed(2));
-      document.documentElement.style.setProperty('--placar-text', theme.text);
+      // document.documentElement.style.setProperty('--placar-text', theme.text); // Removido, agora é controlado por overlayState.fontColor
       document.documentElement.style.setProperty('--placar-border', theme.border);
       document.documentElement.style.setProperty('--placar-timer-color', theme.timerColor);
       document.documentElement.style.setProperty('--highlight-color', theme.timerColor);
