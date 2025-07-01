@@ -6,14 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&family=Montserrat:wght@600;800&display=swap" rel="stylesheet">
   <style>
-    /* ... (MANTENHA SEU CSS EXISTENTE AQUI) ... */
     :root {
       --placar-bg-rgb: 34, 34, 34; 
       --placar-opacity: 0.9; 
       --placar-text: white;
       --placar-border: #555;
-      --placar-timer-color: #0ff;
-      --highlight-color: #0ff;
+      --placar-timer-color: #0ff; /* Será ajustado para ser igual a --placar-text para a animação */
+      --highlight-color: var(--placar-text); /* AGORA USA A MESMA COR DO TEXTO PARA ANIMAÇÃO */
     }
 
     body {
@@ -92,7 +91,7 @@
     .placar-main-line {
       display: flex;
       align-items: center;
-      justify-content: center; 
+      justify-content: center; /* Centraliza horizontalmente */
       width: 100%;
       gap: 5px; 
       flex-wrap: nowrap;
@@ -106,6 +105,9 @@
       gap: 3px; 
       flex-shrink: 0; 
       justify-content: center; 
+      /* Adicionado para garantir alinhamento vertical uniforme */
+      min-height: 90px; /* Garante altura mínima para grupos */
+      box-sizing: border-box;
     }
 
     .placar-group-score { 
@@ -113,6 +115,7 @@
       align-items: center;
       gap: 5px;
       flex-shrink: 0;
+      justify-content: center; /* Centraliza elementos dentro do grupo de score */
     }
 
     .logo-central {
@@ -122,6 +125,8 @@
       flex-shrink: 0; 
       padding: 0 10px; 
       min-width: 60px; 
+      min-height: 90px; /* Alinhar com a altura dos grupos */
+      box-sizing: border-box;
     }
     .logo-central img {
       width: 60px; 
@@ -165,7 +170,10 @@
     #periodoDisplay_display {
       font-size: 24px; 
       font-weight: 700;
-      color: var(--placar-timer-color);
+      /* Ajustar margin-top e bottom para alinhar */
+      margin-top: 10px; /* Ajuste manual para alinhar verticalmente */
+      margin-bottom: 5px;
+      color: var(--placar-timer-color); /* Mantém a cor original para o timer */
       background: rgba(0, 0, 0, 0.6);
       padding: 4px 10px;
       border-radius: 6px;
@@ -179,6 +187,8 @@
         background: rgba(0, 0, 0, 0.4);
         color: var(--placar-text); /* Garantir que use a cor da fonte global */
         font-family: 'Montserrat', sans-serif;
+        margin-top: 10px; /* Ajuste manual para alinhar verticalmente */
+        margin-bottom: 5px;
     }
 
     /* Cartões dentro do .placar-group */
@@ -190,6 +200,7 @@
       width: unset;
       flex-shrink: 0;
       gap: 5px; 
+      margin-top: 5px; /* Empurrar para baixo para alinhar com o período/cronômetro */
     }
     .card-indicator {
       width: 20px; 
@@ -259,7 +270,7 @@
       font-size: 80px; 
       font-weight: 900;
       color: var(--highlight-color); 
-      text-shadow: 0 0 15px rgba(0, 255, 255, 0.9), 0 0 8px rgba(0, 255, 255, 0.6);
+      text-shadow: 0 0 15px var(--highlight-color), 0 0 8px rgba(0, 0, 0, 0.6); /* Sombra também usa highlight-color */
       opacity: 0;
       visibility: hidden;
       animation-fill-mode: forwards;
@@ -536,8 +547,9 @@
 
       applyPlacarTheme();
 
-      // Aplica a cor da fonte geral
+      // Aplica a cor da fonte geral e a cor da animação GOOOL
       document.documentElement.style.setProperty('--placar-text', overlayState.fontColor);
+      document.documentElement.style.setProperty('--highlight-color', overlayState.fontColor); /* AGORA A ANIMAÇÃO USA A MESMA COR DA FONTE */
 
 
       const placarContentWrapper = document.getElementById('placarContentWrapper');
@@ -591,7 +603,7 @@
       document.documentElement.style.setProperty('--placar-opacity', (overlayState.placarOpacity / 100).toFixed(2));
       document.documentElement.style.setProperty('--placar-border', theme.border);
       document.documentElement.style.setProperty('--placar-timer-color', theme.timerColor);
-      document.documentElement.style.setProperty('--highlight-color', theme.timerColor);
+      // '--highlight-color' é definido em renderUI, sincronizado com '--placar-text'
     }
 
     function renderCards(time) {
@@ -629,4 +641,4 @@
     }
   </script>
 </body>
-</html>
+  </html>
