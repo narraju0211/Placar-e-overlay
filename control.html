@@ -888,3 +888,56 @@
         if (overlayState.penalties[team].length < 5) { 
             overlayState.penalties[team].push(result === 'convertido' ? 'green' : 'red');
             saveState();
+        } else {
+            console.warn(`Limite de 5 pênaltis para o Time ${team} atingido.`);
+        }
+    }
+
+    function resetPenalties() {
+        if (!overlayStateRef) { console.error("Firebase não conectado."); return; }
+        overlayState.penalties['1'] = [];
+        overlayState.penalties['2'] = [];
+        saveState();
+    }
+
+    function toggleOverlayVisibility() {
+      if (!overlayStateRef) { console.error("Firebase não conectado."); return; }
+      overlayState.isVisible = !overlayState.isVisible;
+      saveState();
+    }
+
+    function triggerGoalAnimation() {
+        if (!overlayStateRef) { console.error("Firebase não conectado."); return; }
+        
+        // Define o estado da animação no Firebase
+        overlayState.activeAnimation = 'goalAnimation';
+        saveState(); // Salva para que a overlay reaja
+
+        // Após um tempo, reseta o estado da animação no Firebase
+        setTimeout(() => {
+            overlayState.activeAnimation = null; 
+            saveState();
+        }, 2200); // Duração da animação em overlay.html
+    }
+
+    // Função para controle de abas
+    function openTab(evt, tabName) {
+      // Esconde todos os conteúdos das abas
+      const tabContents = document.getElementsByClassName("tab-content");
+      for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].classList.remove("active");
+      }
+
+      // Remove a classe 'active' de todos os botões de abas
+      const tabButtons = document.getElementsByClassName("tab-button");
+      for (let i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].classList.remove("active");
+      }
+
+      // Mostra a aba atual e adiciona a classe 'active' ao botão clicado
+      document.getElementById(tabName).classList.add("active");
+      evt.currentTarget.classList.add("active");
+    }
+  </script>
+</body>
+  </html>
