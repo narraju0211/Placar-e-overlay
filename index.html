@@ -1,155 +1,646 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Aquiles Overlay PRO - Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #0d1117;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      box-sizing: border-box;
-      padding: 20px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Placar</title>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #2c2c3e;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
 
-    .login-container {
-      background: #1c1c1c;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
-      text-align: center;
-      width: 100%;
-      max-width: 450px;
-      box-sizing: border-box;
-      border: 1px solid #3a3a3a;
-    }
+        h1 {
+            color: #64ffda;
+            margin-bottom: 30px;
+            text-align: center;
+        }
 
-    .login-container h1 {
-      color: #0ff; /* Cor de destaque */
-      margin-bottom: 30px;
-      font-size: 2.2em;
-      text-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
-    }
+        .section-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            width: 100%;
+            max-width: 1200px;
+        }
 
-    .login-container p {
-      color: #bbb;
-      margin-bottom: 25px;
-      font-size: 0.95em;
-    }
+        .card {
+            background-color: #3b3b5c;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            flex: 1 1 calc(33% - 40px); /* Para 3 colunas, ajusta para telas menores */
+            min-width: 300px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
 
-    .input-group {
-      margin-bottom: 25px;
-      text-align: left;
-    }
+        .card h2 {
+            color: #64ffda;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #50507a;
+            padding-bottom: 10px;
+        }
 
-    .input-group label {
-      display: block;
-      margin-bottom: 10px;
-      font-weight: bold;
-      color: #eee;
-      font-size: 1.1em;
-    }
+        .input-group, .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
-    .input-group input {
-      width: 100%;
-      padding: 12px 15px;
-      border-radius: 8px;
-      border: 1px solid #555;
-      background-color: #3a3a3a;
-      color: white;
-      font-size: 1.1em;
-      box-sizing: border-box;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    }
+        label {
+            margin-bottom: 5px;
+            color: #a0a0a0;
+        }
 
-    .input-group input:focus {
-      border-color: #0ff;
-      box-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
-      outline: none;
-    }
+        input[type="text"], input[type="number"], input[type="file"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #50507a;
+            border-radius: 5px;
+            background-color: #2a2a40;
+            color: #e0e0e0;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        input[type="file"] {
+            padding: 5px; /* Menor padding para input de arquivo */
+        }
 
-    .btn {
-      width: 100%;
-      padding: 14px 20px;
-      font-size: 1.2em;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-      transition: background 0.3s ease, transform 0.1s ease;
-    }
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
 
-    .btn:hover {
-      background: #0056b3;
-      transform: translateY(-2px);
-    }
+        .btn-primary {
+            background-color: #64ffda;
+            color: #2c2c3e;
+        }
+        .btn-primary:hover {
+            background-color: #4fe0c5;
+            transform: translateY(-2px);
+        }
 
-    .btn:active {
-      transform: translateY(0);
-    }
+        .btn-secondary {
+            background-color: #50507a;
+            color: #e0e0e0;
+        }
+        .btn-secondary:hover {
+            background-color: #60608a;
+            transform: translateY(-2px);
+        }
 
-    .error-message {
-      color: #ff6347; /* Tomato */
-      margin-top: 15px;
-      font-weight: bold;
-      font-size: 0.95em;
-    }
-  </style>
+        .btn-danger {
+            background-color: #f44336;
+            color: #e0e0e0;
+        }
+        .btn-danger:hover {
+            background-color: #d32f2f;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .score-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .score-controls button {
+            flex: 1;
+        }
+        .score-display {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #64ffda;
+            background-color: #2a2a40;
+            padding: 8px 15px;
+            border-radius: 5px;
+            min-width: 50px;
+            text-align: center;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.4);
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .flex-row > div {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .timer-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .timer-display {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 2em;
+            font-weight: bold;
+            color: #00ffff;
+            background-color: #2a2a40;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            box-shadow: inset 0 0 10px rgba(0,255,255,0.3);
+        }
+        .timer-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .timer-buttons button {
+            flex: 1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .section-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .card {
+                flex: 1 1 90%;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="login-container">
-    <h1>Aquiles Overlay PRO</h1>
-    <p>Insira seu ID único de narrador para acessar o painel de controle e sua overlay.</p>
+    <h1>Controle do Placar e Overlay</h1>
 
-    <div class="input-group">
-      <label for="narratorIdInput">ID do Narrador:</label>
-      <input type="text" id="narratorIdInput" placeholder="Ex: meu_canal_esportes" autocomplete="off">
+    <div class="section-container">
+        <div class="card">
+            <h2>Geral</h2>
+            <div class="input-group">
+                <label for="overlayVisibility">Visibilidade da Overlay:</label>
+                <button id="toggleVisibility" class="btn-primary">Mostrar/Esconder Overlay</button>
+            </div>
+            <div class="input-group">
+                <label for="logoCentralUrl">URL Logo Central:</label>
+                <input type="text" id="logoCentralUrl" placeholder="URL da Logo Central">
+                <button id="updateLogoCentral" class="btn-secondary">Atualizar Logo Central</button>
+                <button id="toggleLogoCentral" class="btn-secondary">Mostrar/Esconder Logo Central</button>
+            </div>
+            <div class="input-group">
+                <label for="bgRgb">Cor de Fundo (R,G,B):</label>
+                <input type="text" id="bgRgb" placeholder="Ex: 24, 24, 27">
+                <label for="fontRgb">Cor da Fonte (R,G,B):</label>
+                <input type="text" id="fontRgb" placeholder="Ex: 255, 255, 255">
+                <label for="borderColor">Cor da Borda (Hex):</label>
+                <input type="text" id="borderColor" placeholder="Ex: #64ffda">
+                <label for="timerColor">Cor do Timer (Hex):</label>
+                <input type="text" id="timerColor" placeholder="Ex: #00ffff">
+                <button id="updateColors" class="btn-secondary">Atualizar Cores</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Time da Casa</h2>
+            <div class="input-group">
+                <label for="nomeTime1Input">Nome Completo:</label>
+                <input type="text" id="nomeTime1Input" placeholder="Nome do Time 1">
+            </div>
+            <div class="input-group">
+                <label for="nomeAbbr1Input">Sigla:</label>
+                <input type="text" id="nomeAbbr1Input" placeholder="Sigla (Ex: GNR)">
+            </div>
+            <div class="input-group">
+                <label for="escudo1Input">URL Escudo:</label>
+                <input type="text" id="escudo1Input" placeholder="URL do escudo do Time 1">
+            </div>
+            <button id="updateTime1Info" class="btn-primary">Atualizar Info Time 1</button>
+
+            <h3>Placar</h3>
+            <div class="score-controls">
+                <button class="btn-danger" onclick="updatePlacar('1', -1)">-</button>
+                <span id="displayPlacar1" class="score-display">0</span>
+                <button class="btn-success" onclick="updatePlacar('1', 1)">+</button>
+            </div>
+
+            <h3>Cartões</h3>
+            <div class="flex-row">
+                <div>
+                    <label for="cartaoAmarelo1">Amarelos:</label>
+                    <input type="number" id="cartaoAmarelo1" min="0" value="0">
+                </div>
+                <div>
+                    <label for="cartaoVermelho1">Vermelhos:</label>
+                    <input type="number" id="cartaoVermelho1" min="0" value="0">
+                </div>
+            </div>
+            <button class="btn-secondary" onclick="updateCards('1')">Atualizar Cartões Time 1</button>
+        </div>
+
+        <div class="card">
+            <h2>Time Visitante</h2>
+            <div class="input-group">
+                <label for="nomeTime2Input">Nome Completo:</label>
+                <input type="text" id="nomeTime2Input" placeholder="Nome do Time 2">
+            </div>
+            <div class="input-group">
+                <label for="nomeAbbr2Input">Sigla:</label>
+                <input type="text" id="nomeAbbr2Input" placeholder="Sigla (Ex: VST)">
+            </div>
+            <div class="input-group">
+                <label for="escudo2Input">URL Escudo:</label>
+                <input type="text" id="escudo2Input" placeholder="URL do escudo do Time 2">
+            </div>
+            <button id="updateTime2Info" class="btn-primary">Atualizar Info Time 2</button>
+
+            <h3>Placar</h3>
+            <div class="score-controls">
+                <button class="btn-danger" onclick="updatePlacar('2', -1)">-</button>
+                <span id="displayPlacar2" class="score-display">0</span>
+                <button class="btn-success" onclick="updatePlacar('2', 1)">+</button>
+            </div>
+
+            <h3>Cartões</h3>
+            <div class="flex-row">
+                <div>
+                    <label for="cartaoAmarelo2">Amarelos:</label>
+                    <input type="number" id="cartaoAmarelo2" min="0" value="0">
+                </div>
+                <div>
+                    <label for="cartaoVermelho2">Vermelhos:</label>
+                    <input type="number" id="cartaoVermelho2" min="0" value="0">
+                </div>
+            </div>
+            <button class="btn-secondary" onclick="updateCards('2')">Atualizar Cartões Time 2</button>
+        </div>
+
+        <div class="card">
+            <h2>Timer e Período</h2>
+            <div class="timer-display" id="displayTimer">00:00</div>
+            <div class="timer-buttons">
+                <button class="btn-primary" onclick="startTimer()">Iniciar</button>
+                <button class="btn-secondary" onclick="pauseTimer()">Pausar</button>
+                <button class="btn-danger" onclick="resetTimer()">Resetar</button>
+            </div>
+            <div class="input-group">
+                <label for="timerSetMinutes">Definir Minutos:</label>
+                <input type="number" id="timerSetMinutes" min="0" value="45">
+            </div>
+            <div class="input-group">
+                <label for="periodoSelect">Período:</label>
+                <select id="periodoSelect">
+                    <option value="Pré-Jogo">Pré-Jogo</option>
+                    <option value="1º Tempo">1º Tempo</option>
+                    <option value="Intervalo">Intervalo</option>
+                    <option value="2º Tempo">2º Tempo</option>
+                    <option value="Prorrogação 1">Prorrogação 1</option>
+                    <option value="Prorrogação 2">Prorrogação 2</option>
+                    <option value="Pênaltis">Pênaltis</option>
+                    <option value="Final de Jogo">Final de Jogo</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="updatePeriodo()">Atualizar Período</button>
+        </div>
+
+        <div class="card">
+            <h2>Modo Pênaltis</h2>
+            <button id="togglePenaltyMode" class="btn-primary">Ativar/Desativar Modo Pênalti</button>
+
+            <h3>Pênaltis Time 1</h3>
+            <div class="button-group">
+                <button class="btn-success" onclick="addPenaltyResult('1', true)">Gol</button>
+                <button class="btn-danger" onclick="addPenaltyResult('1', false)">Erro</button>
+                <button class="btn-secondary" onclick="removeLastPenaltyResult('1')">Remover Último</button>
+                <button class="btn-danger" onclick="resetPenaltyResults('1')">Resetar Tudo</button>
+            </div>
+
+            <h3>Pênaltis Time 2</h3>
+            <div class="button-group">
+                <button class="btn-success" onclick="addPenaltyResult('2', true)">Gol</button>
+                <button class="btn-danger" onclick="addPenaltyResult('2', false)">Erro</button>
+                <button class="btn-secondary" onclick="removeLastPenaltyResult('2')">Remover Último</button>
+                <button class="btn-danger" onclick="resetPenaltyResults('2')">Resetar Tudo</button>
+            </div>
+        </div>
     </div>
 
-    <button class="btn" onclick="login()">Entrar</button>
-    <p class="error-message" id="errorMessage"></p>
-  </div>
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            // Suas configurações do Firebase aqui (apiKey, authDomain, databaseURL, projectId, storageBucket, messagingSenderId, appId)
+            // Exemplo:
+            // apiKey: "YOUR_API_KEY",
+            // authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            // databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            // projectId: "YOUR_PROJECT_ID",
+            // storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            // messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            // appId: "YOUR_APP_ID"
+        };
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const savedNarratorId = localStorage.getItem('aquilesNarratorId');
-      if (savedNarratorId) {
-        document.getElementById('narratorIdInput').value = savedNarratorId;
-      }
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const overlayRef = database.ref('overlayState'); // Referência ao estado da overlay
 
-      document.getElementById('narratorIdInput').addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-          login();
+        // Variável local para manter o estado atual do placar (sincronizado com o Firebase)
+        let controlOverlayState = {
+            isVisible: true,
+            nomeTime1: 'TIME CASA',
+            nomeAbbr1: 'CSA',
+            escudo1: '',
+            placar1: 0,
+            cartoesAmarelo1: 0,
+            cartoesVermelho1: 0,
+            
+            nomeTime2: 'TIME FORA',
+            nomeAbbr2: 'FOR',
+            escudo2: '',
+            placar2: 0,
+            cartoesAmarelo2: 0,
+            cartoesVermelho2: 0,
+
+            timer: '00:00',
+            periodo: '1º Tempo',
+            timerRunning: false,
+            timeElapsed: 0, // Tempo em segundos
+            
+            logoCentral: '',
+            showLogoCentral: false,
+
+            // Cores (para teste, pode remover se não quiser controlar por aqui)
+            bgRgb: '24, 24, 27',
+            fontRgb: '255, 255, 255',
+            borderColor: '#64ffda',
+            timerColor: '#00ffff',
+
+            penaltyMode: false,
+            penaltyResults1: [], // Array de booleanos (true para gol, false para erro)
+            penaltyResults2: [],
+            lastGoalScoredTeam: null // Adicionamos esta variável
+        };
+
+        // Elementos do DOM
+        const displayPlacar1 = document.getElementById('displayPlacar1');
+        const displayPlacar2 = document.getElementById('displayPlacar2');
+        const displayTimer = document.getElementById('displayTimer');
+        const periodoSelect = document.getElementById('periodoSelect');
+
+        // Inputs de configuração de info de times
+        const nomeTime1Input = document.getElementById('nomeTime1Input');
+        const nomeAbbr1Input = document.getElementById('nomeAbbr1Input');
+        const escudo1Input = document.getElementById('escudo1Input');
+        const nomeTime2Input = document.getElementById('nomeTime2Input');
+        const nomeAbbr2Input = document.getElementById('nomeAbbr2Input');
+        const escudo2Input = document.getElementById('escudo2Input');
+
+        // Inputs de cartões
+        const cartaoAmarelo1 = document.getElementById('cartaoAmarelo1');
+        const cartaoVermelho1 = document.getElementById('cartaoVermelho1');
+        const cartaoAmarelo2 = document.getElementById('cartaoAmarelo2');
+        const cartaoVermelho2 = document.getElementById('cartaoVermelho2');
+
+        // Inputs de timer
+        const timerSetMinutes = document.getElementById('timerSetMinutes');
+
+        // Inputs de cores
+        const bgRgb = document.getElementById('bgRgb');
+        const fontRgb = document.getElementById('fontRgb');
+        const borderColor = document.getElementById('borderColor');
+        const timerColor = document.getElementById('timerColor');
+        const logoCentralUrl = document.getElementById('logoCentralUrl');
+
+        // Sincronizar estado inicial do Firebase com o controle
+        overlayRef.once('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                Object.assign(controlOverlayState, data);
+                // Atualizar UI do controle com os dados do Firebase
+                updateControlUI();
+            } else {
+                // Se não houver dados, inicializa o Firebase com o estado padrão
+                updateFirebaseOverlayState();
+            }
+        });
+
+        // Função para atualizar o Firebase
+        function updateFirebaseOverlayState() {
+            overlayRef.set(controlOverlayState)
+                .then(() => console.log('Estado da overlay atualizado no Firebase.'))
+                .catch(error => console.error('Erro ao atualizar Firebase:', error));
         }
-      });
-    });
 
-    function login() {
-      const narratorId = document.getElementById('narratorIdInput').value.trim();
-      const errorMessageElement = document.getElementById('errorMessage');
+        // Função para atualizar a UI do painel de controle
+        function updateControlUI() {
+            displayPlacar1.textContent = controlOverlayState.placar1;
+            displayPlacar2.textContent = controlOverlayState.placar2;
+            displayTimer.textContent = controlOverlayState.timer;
+            periodoSelect.value = controlOverlayState.periodo;
 
-      if (!narratorId) {
-        errorMessageElement.innerText = 'Por favor, insira um ID de narrador.';
-        return;
-      }
+            nomeTime1Input.value = controlOverlayState.nomeTime1;
+            nomeAbbr1Input.value = controlOverlayState.nomeAbbr1;
+            escudo1Input.value = controlOverlayState.escudo1;
+            
+            nomeTime2Input.value = controlOverlayState.nomeTime2;
+            nomeAbbr2Input.value = controlOverlayState.nomeAbbr2;
+            escudo2Input.value = controlOverlayState.escudo2;
 
-      if (!/^[a-zA-Z0-9_-]+$/.test(narratorId)) {
-        errorMessageElement.innerText = 'O ID deve conter apenas letras, números, hífens (-) e underscores (_).';
-        return;
-      }
+            cartaoAmarelo1.value = controlOverlayState.cartoesAmarelo1;
+            cartaoVermelho1.value = controlOverlayState.cartoesVermelho1;
+            cartaoAmarelo2.value = controlOverlayState.cartoesAmarelo2;
+            cartaoVermelho2.value = controlOverlayState.cartoesVermelho2;
 
-      localStorage.setItem('aquilesNarratorId', narratorId);
-      // ESTA LINHA REDIRECIONA PARA 'control.html'
-      window.location.href = `control.html?narratorId=${narratorId}`;
-    }
-  </script>
+            bgRgb.value = controlOverlayState.bgRgb;
+            fontRgb.value = controlOverlayState.fontRgb;
+            borderColor.value = controlOverlayState.borderColor;
+            timerColor.value = controlOverlayState.timerColor;
+            logoCentralUrl.value = controlOverlayState.logoCentral;
+        }
+
+        // --- Funções de Controle ---
+
+        // Visibilidade da Overlay
+        document.getElementById('toggleVisibility').addEventListener('click', () => {
+            controlOverlayState.isVisible = !controlOverlayState.isVisible;
+            updateFirebaseOverlayState();
+        });
+
+        // Atualizar Info de Times
+        document.getElementById('updateTime1Info').addEventListener('click', () => {
+            controlOverlayState.nomeTime1 = nomeTime1Input.value;
+            controlOverlayState.nomeAbbr1 = nomeAbbr1Input.value;
+            controlOverlayState.escudo1 = escudo1Input.value;
+            updateFirebaseOverlayState();
+        });
+
+        document.getElementById('updateTime2Info').addEventListener('click', () => {
+            controlOverlayState.nomeTime2 = nomeTime2Input.value;
+            controlOverlayState.nomeAbbr2 = nomeAbbr2Input.value;
+            controlOverlayState.escudo2 = escudo2Input.value;
+            updateFirebaseOverlayState();
+        });
+
+        // Atualizar Placar (MODIFICADO PARA ANIMAR ESCUDO)
+        function updatePlacar(team, value) {
+            controlOverlayState[`placar${team}`] = Math.max(0, controlOverlayState[`placar${team}`] + value);
+            
+            // Lógica para a animação do escudo no gol
+            if (value > 0) { // Se for um gol (+1)
+                controlOverlayState.lastGoalScoredTeam = team; // Define qual time marcou
+            } else {
+                // Se for subtraído (-1), ou seja, gol anulado, reseta a animação
+                controlOverlayState.lastGoalScoredTeam = null; 
+            }
+            
+            updateFirebaseOverlayState();
+            updateControlUI(); // Atualiza o display no controle também
+            
+            // Um pequeno atraso para resetar a variável do último gol no Firebase
+            // Isso garante que a animação possa ser disparada novamente em um próximo gol,
+            // mesmo que o time seja o mesmo.
+            if (value > 0) {
+                setTimeout(() => {
+                    controlOverlayState.lastGoalScoredTeam = null;
+                    updateFirebaseOverlayState();
+                }, 3000); // Resetar depois de um tempo suficiente para a animação
+            }
+        }
+
+        // Atualizar Cartões
+        function updateCards(team) {
+            controlOverlayState[`cartoesAmarelo${team}`] = parseInt(document.getElementById(`cartaoAmarelo${team}`).value);
+            controlOverlayState[`cartoesVermelho${team}`] = parseInt(document.getElementById(`cartaoVermelho${team}`).value);
+            updateFirebaseOverlayState();
+        }
+
+        // --- Timer ---
+        let timerInterval;
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (controlOverlayState.timerRunning) return;
+            controlOverlayState.timerRunning = true;
+            timerInterval = setInterval(() => {
+                controlOverlayState.timeElapsed++;
+                controlOverlayState.timer = formatTime(controlOverlayState.timeElapsed);
+                updateFirebaseOverlayState();
+                updateControlUI();
+            }, 1000);
+            updateFirebaseOverlayState(); // Atualiza o estado de running
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            controlOverlayState.timerRunning = false;
+            updateFirebaseOverlayState(); // Atualiza o estado de running
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            controlOverlayState.timerRunning = false;
+            controlOverlayState.timeElapsed = 0;
+            controlOverlayState.timer = formatTime(controlOverlayState.timeElapsed);
+            updateFirebaseOverlayState();
+            updateControlUI();
+        }
+
+        // Define o tempo inicial do timer
+        document.getElementById('timerSetMinutes').addEventListener('change', () => {
+            const minutes = parseInt(timerSetMinutes.value);
+            controlOverlayState.timeElapsed = minutes * 60;
+            controlOverlayState.timer = formatTime(controlOverlayState.timeElapsed);
+            updateFirebaseOverlayState();
+            updateControlUI();
+        });
+
+
+        // Período
+        function updatePeriodo() {
+            controlOverlayState.periodo = periodoSelect.value;
+            updateFirebaseOverlayState();
+        }
+
+        // Logo Central
+        document.getElementById('updateLogoCentral').addEventListener('click', () => {
+            controlOverlayState.logoCentral = logoCentralUrl.value;
+            updateFirebaseOverlayState();
+        });
+        document.getElementById('toggleLogoCentral').addEventListener('click', () => {
+            controlOverlayState.showLogoCentral = !controlOverlayState.showLogoCentral;
+            updateFirebaseOverlayState();
+        });
+        
+        // Cores
+        document.getElementById('updateColors').addEventListener('click', () => {
+            controlOverlayState.bgRgb = bgRgb.value;
+            controlOverlayState.fontRgb = fontRgb.value;
+            controlOverlayState.borderColor = borderColor.value;
+            controlOverlayState.timerColor = timerColor.value;
+            updateFirebaseOverlayState();
+        });
+
+        // --- Modo Pênaltis ---
+        document.getElementById('togglePenaltyMode').addEventListener('click', () => {
+            controlOverlayState.penaltyMode = !controlOverlayState.penaltyMode;
+            updateFirebaseOverlayState();
+        });
+
+        function addPenaltyResult(team, isGoal) {
+            controlOverlayState[`penaltyResults${team}`].push(isGoal);
+            updateFirebaseOverlayState();
+        }
+
+        function removeLastPenaltyResult(team) {
+            if (controlOverlayState[`penaltyResults${team}`].length > 0) {
+                controlOverlayState[`penaltyResults${team}`].pop();
+                updateFirebaseOverlayState();
+            }
+        }
+
+        function resetPenaltyResults(team) {
+            controlOverlayState[`penaltyResults${team}`] = [];
+            updateFirebaseOverlayState();
+        }
+
+        // Listener para sincronizar o estado do Firebase com a UI do controle em tempo real
+        overlayRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                Object.assign(controlOverlayState, data);
+                updateControlUI(); // Atualiza a UI do controle sempre que o Firebase muda
+            }
+        });
+
+    </script>
 </body>
-</html>
+          </html>
