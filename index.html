@@ -364,15 +364,15 @@
     let overlayState = {
       placar: { '1': 0, '2': 0 },
       cards: { '1': { 'amarelo': 0, 'vermelho': 0 }, '2': { 'amarelo': 0, 'vermelho': 0 } },
-      penalties: { '1': [], '2': [] }, // Irá armazenar 'green' ou 'red'
+      penalties: { '1': [], '2': [] },
       seconds: 0, 
       timerRunning: false,
       placarThemeIndex: 0,
       placarOpacity: 90, 
       fontColor: '#E0E0E0', 
       penaltyModeActive: false,
-      activeAnimation: null, // 'goalAnimation'
-      currentPeriod: 1, // 0: Pré-Jogo, 1: 1ºT, 2: 2ºT, 3: Prorrogação, 4: Intervalo, 5: Pênaltis, 6: Final
+      activeAnimation: null, 
+      currentPeriod: 1,
       nome1: '',
       nome2: '',
       nomeAbbr1: 'T1',
@@ -395,13 +395,12 @@
     ];
 
     const periodNames = {
-        0: 'Pré-Jogo', // Mapeado de 'Pré-Jogo' e 'Final de Jogo' do controle
+        0: 'Parado',
         1: '1º T',
         2: '2º T',
-        3: 'Prorrog', // Para Prorrogação 1 e 2
-        4: 'Intervalo',
-        5: 'Pênaltis',
-        6: 'Final de Jogo' // Se desejar um estado final explícito
+        3: 'Prorrog',
+        4: 'Int',
+        5: 'T. Extra'
     };
 
     document.addEventListener('DOMContentLoaded', initializeApp);
@@ -425,7 +424,6 @@
                 // Ao final da animação, garante que ela esteja oculta e o placar visível
                 goalAnimationElement.style.visibility = 'hidden';
                 goalAnimationElement.classList.remove('active');
-                // Adicionado: Garante que o conteúdo do placar volte a ser visível
                 document.getElementById('placarContentWrapper').classList.remove('hidden-content');
                 document.getElementById('placarContentWrapper').classList.add('visible-content');
             }
@@ -441,4 +439,194 @@
                 
                 // Mapeia os dados do Firebase para o estado local, garantindo valores padrão
                 overlayState.placar = newState.placar || { '1': 0, '2': 0 };
-                overlayState.cards = newState.cards || { '1': { '
+                overlayState.cards = newState.cards || { '1': { 'amarelo': 0, 'vermelho': 0 }, '2': { 'amarelo': 0, 'vermelho': 0 } };
+                overlayState.penalties = newState.penalties || { '1': [], '2': [] };
+                // timerRunning e seconds são tratados separadamente abaixo para o cronômetro
+                overlayState.placarThemeIndex = newState.placarThemeIndex !== undefined ? newState.placarThemeIndex : 0;
+                overlayState.placarOpacity = newState.placarOpacity !== undefined ? newState.placarOpacity : 90;
+                overlayState.fontColor = newState.fontColor || '#E0E0E0';
+                overlayState.penaltyModeActive = newState.penaltyModeActive !== undefined ? newState.penaltyModeActive : false;
+                overlayState.activeAnimation = newState.activeAnimation || null;
+                overlayState.currentPeriod = newState.currentPeriod !== undefined ? newState.currentPeriod : 1;
+                overlayState.nome1 = newState.nome1 || '';
+                overlayState.nome2 = newState.nome2 || '';
+                overlayState.nomeAbbr1 = newState.nomeAbbr1 || 'T1';
+                overlayState.nomeAbbr2 = newState.nomeAbbr2 || 'T2';
+                overlayState.escudo1 = newState.escudo1 || '';
+                overlayState.escudo2 = newState.escudo2 || '';
+                overlayState.logoOverlay = newState.logoOverlay || '';
+                overlayState.isVisible = newState.isVisible !== undefined ? newState.isVisible : true;
+
+                // *** NOVA LÓGICA DO CRONÔMETRO: SÓ ALTERA SE HOUVER COMANDO EXPLÍCITO ***
+                const firebaseSeconds = newState.seconds !== undefined ? newState.seconds : 0;
+                const firebaseTimerRunning = newState.timerRunning !== undefined ? newState.timerRunning : false;
+
+                if (firebaseTimerRunning && !overlayState.timerRunning) {
+                    // Comando para INICIAR o timer veio do Firebase
+                    startLocalTimer(firebaseSeconds); 
+                } else if (!firebaseTimerRunning && overlayState.timerRunning) {
+                    // Comando para PAUSAR o timer veio do Firebase
+                    stopLocalTimer();
+                    localSeconds = firebaseSeconds; // Sincroniza o tempo finalizado
+                } else if (!firebaseTimerRunning && !overlayState.timerRunning && localSeconds !== firebaseSeconds) {
+                    // Timer PARADO no Firebase e o tempo foi RESETADO ou AJUSTADO no controlador
+                    localSeconds = firebaseSeconds;
+                }
+                // Se o timer já está rodando localmente e o Firebase continua enviando `timerRunning: true`,
+                // não faz nada para não interromper a contagem independente.
+
+                overlayState.timerRunning = firebaseTimerRunning; // Atualiza o estado para o próximo ciclo
+                // FIM DA NOVA LÓGICA DO CRONÔMETRO
+                
+                renderUI();
+            } else {
+                console.warn(`Nó para narrador '${narratorId}' não encontrado no Firebase. Aguardando dados do controlador.`);
+                // Opcional: Mostrar uma mensagem na overlay para o usuário
+            }
+        }, (error) => {
+          console.error("Erro ao ler dados do Firebase:", error);
+          document.getElementById('placarPrincipal').innerHTML = '<div style="color: red; font-size: 24px; text-align: center; padding: 20px;">ERRO DE FIREBASE.<br>Verifique sua configuração ou conexão.</div>';
+        });
+    }
+
+    // Cronômetro local
+    function startLocalTimer(initialSeconds) {
+        if (timerInterval) clearInterval(timerInterval); // Limpa qualquer timer anterior
+        localSeconds = initialSeconds; 
+        document.getElementById('cronometro_display').innerText = formatTime(localSeconds); // Atualiza imediatamente
+
+        timerInterval = setInterval(() => {
+            localSeconds++;
+            document.getElementById('cronometro_display').innerText = formatTime(localSeconds);
+        }, 1000);
+    }
+
+    function stopLocalTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    function renderUI() {
+      // Atualiza os elementos do placar
+      document.getElementById('placar1_display').innerText = overlayState.placar['1'];
+      document.getElementById('placar2_display').innerText = overlayState.placar['2'];
+      document.getElementById('nomeAbbr1_display').innerText = overlayState.nomeAbbr1 || 'T1'; 
+      document.getElementById('nomeAbbr2_display').innerText = overlayState.nomeAbbr2 || 'T2'; 
+      document.getElementById('nomePenalty1_display').innerText = overlayState.nome1 || 'Time 1';
+      document.getElementById('nomePenalty2_display').innerText = overlayState.nome2 || 'Time 2';
+
+      document.getElementById('escudo1_display').src = overlayState.escudo1 || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+      document.getElementById('escudoPenalty1_display').src = overlayState.escudo1 || 'data:image/gif;base64,R0lGODlhAQABAAACADs=';
+      document.getElementById('escudo2_display').src = overlayState.escudo2 || 'data:image/gif;base64,R0lGODlhAQABAAACADs=';
+      document.getElementById('escudoPenalty2_display').src = overlayState.escudo2 || 'data:image/gif;base64,R0lGODlhAQABAAACADs=';
+
+      document.getElementById('logoOverlay_display').src = overlayState.logoOverlay || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+      document.getElementById('logoOverlayPenalty_display').src = overlayState.logoOverlay || 'data:image/gif;base64,R0lGODlhAQABAAACADs=';
+
+      document.getElementById('cronometro_display').innerText = formatTime(localSeconds); 
+
+      renderCards('1');
+      renderCards('2');
+      document.getElementById('periodoDisplay_display').innerText = periodNames[overlayState.currentPeriod] || 'N/A';
+      
+      renderPenalties('1');
+      renderPenalties('2');
+
+      applyPlacarTheme();
+
+      // Aplica a cor da fonte geral
+      document.documentElement.style.setProperty('--placar-text', overlayState.fontColor);
+
+
+      const placarContentWrapper = document.getElementById('placarContentWrapper');
+      const normalContent = document.getElementById('normalPlacarContent_display');
+      const penaltyContent = document.getElementById('penaltyPlacarContent_display');
+      const goalAnimation = document.getElementById('goalAnimation_display');
+
+      // Gerencia a animação e visibilidade do placar
+      if (overlayState.activeAnimation === 'goalAnimation') {
+          // Esconde o conteúdo do placar e mostra a animação
+          placarContentWrapper.classList.add('hidden-content');
+          placarContentWrapper.classList.remove('visible-content');
+          goalAnimation.style.visibility = 'visible';
+          goalAnimation.classList.add('active'); 
+      } else {
+          // Garante que a animação esteja parada e oculta
+          goalAnimation.style.visibility = 'hidden';
+          goalAnimation.classList.remove('active'); 
+          
+          // Mostra o conteúdo do placar e decide qual modo (normal/pênalti)
+          placarContentWrapper.classList.remove('hidden-content');
+          placarContentWrapper.classList.add('visible-content');
+
+          if (overlayState.penaltyModeActive) {
+              normalContent.style.display = 'none';
+              penaltyContent.style.display = 'flex'; 
+          } else {
+              normalContent.style.display = 'flex'; 
+              penaltyContent.style.display = 'none';
+          }
+      }
+
+      // Controla a visibilidade geral da overlay
+      const visualContainer = document.getElementById('visualOverlayContainer');
+      if (overlayState.isVisible) {
+        visualContainer.classList.remove('hidden-display');
+      } else {
+        visualContainer.classList.add('hidden-display');
+      }
+    }
+
+    function formatTime(s) {
+      const min = String(Math.floor(s / 60)).padStart(2, '0');
+      const sec = String(s % 60).padStart(2, '0');
+      return `${min}:${sec}`;
+    }
+
+    function applyPlacarTheme() {
+      const theme = placarThemes[overlayState.placarThemeIndex];
+      document.documentElement.style.setProperty('--placar-bg-rgb', theme.rgb);
+      document.documentElement.style.setProperty('--placar-opacity', (overlayState.placarOpacity / 100).toFixed(2));
+      document.documentElement.style.setProperty('--placar-border', theme.border);
+      document.documentElement.style.setProperty('--placar-timer-color', theme.timerColor);
+      document.documentElement.style.setProperty('--highlight-color', theme.timerColor);
+    }
+
+    function renderCards(time) {
+      const displayElement = document.getElementById(`cardsDisplay${time}_display`);
+      displayElement.innerHTML = ''; 
+      const amarelos = (overlayState.cards[time] && typeof overlayState.cards[time].amarelo === 'number') ? overlayState.cards[time].amarelo : 0;
+      const vermelhos = (overlayState.cards[time] && typeof overlayState.cards[time].vermelho === 'number') ? overlayState.cards[time].vermelho : 0;
+
+      for (let i = 0; i < amarelos; i++) {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card-indicator yellow-card';
+        displayElement.appendChild(cardDiv);
+      }
+      for (let i = 0; i < vermelhos; i++) {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card-indicator red-card'; 
+        displayElement.appendChild(cardDiv);
+      }
+    }
+
+    function renderPenalties(time) {
+      const penaltyBallsContainer = document.getElementById(`penaltiesDisplay${time}_display`);
+      penaltyBallsContainer.innerHTML = ''; 
+
+      const penalties = overlayState.penalties && Array.isArray(overlayState.penalties[time]) ? overlayState.penalties[time] : []; 
+      
+      for (let i = 0; i < 5; i++) { 
+        const ballDiv = document.createElement('div');
+        ballDiv.className = 'penalty-ball';
+        if (penalties[i]) {
+          ballDiv.classList.add(penalties[i]); 
+        }
+        penaltyBallsContainer.appendChild(ballDiv);
+      }
+    }
+  </script>
+</body>
+        </html>
