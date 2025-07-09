@@ -2,631 +2,479 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Aquiles Overlay PRO - Placar</title>
+  <title>Aquiles Overlay PRO - Controle</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&family=Montserrat:wght@600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    /* ... (MANTENHA SEU CSS EXISTENTE AQUI) ... */
-    :root {
-      --placar-bg-rgb: 34, 34, 34; 
-      --placar-opacity: 0.9; 
-      --placar-text: white;
-      --placar-border: #555;
-      --placar-timer-color: #0ff;
-      --highlight-color: #0ff;
-    }
-
     body {
-      margin: 0;
-      font-family: 'Montserrat', sans-serif;
-      background-color: transparent;
-      overflow: hidden;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start; 
-      padding-top: 15px; 
-      box-sizing: border-box;
-    }
-
-    .visual-overlay-container {
-      width: 100%;
-      max-width: 900px;
-      display: flex;
-      flex-direction: column; 
-      align-items: center;
-      transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-      opacity: 1;
-      visibility: visible;
-      background-color: transparent;
-      position: relative; 
-      z-index: 2;
-      height: fit-content; 
-      min-height: 120px; 
-      justify-content: flex-start; 
-    }
-
-    .visual-overlay-container.hidden-display {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transform: translateY(-50px);
-    }
-
-    .placar {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: rgba(var(--placar-bg-rgb), var(--placar-opacity)); 
-      padding: 5px 15px; 
-      border-radius: 12px;
-      width: 100%;
-      box-sizing: border-box;
-      border: 1px solid var(--placar-border);
-      color: var(--placar-text);
-      position: relative; 
-      overflow: hidden; 
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-      min-height: unset; 
-      height: fit-content; 
-      justify-content: center;
-    }
-
-    .placar-content-wrapper {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        align-items: center;
-        transition: opacity 0.3s ease-in-out; /* Transição para opacidade */
-    }
-
-    .placar-content-wrapper.hidden-content {
-        opacity: 0;
-        pointer-events: none; /* Desabilita eventos de mouse */
-    }
-    .placar-content-wrapper.visible-content {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    .placar-main-line {
-      display: flex;
-      align-items: center;
-      justify-content: center; 
-      width: 100%;
-      gap: 5px; 
-      flex-wrap: nowrap;
-      padding: 5px 0; 
-    }
-
-    .placar-group {
-      display: flex;
-      flex-direction: column; 
-      align-items: center;
-      gap: 3px; 
-      flex-shrink: 0; 
-      justify-content: center; 
-    }
-
-    .placar-group-score { 
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      flex-shrink: 0;
-    }
-
-    .logo-central {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0; 
-      padding: 0 10px; 
-      min-width: 60px; 
-    }
-    .logo-central img {
-      width: 60px; 
-      height: 60px;
-      object-fit: contain;
-      filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6));
-    }
-
-    .escudo {
-      width: 45px; 
-      height: 45px;
-      object-fit: contain;
-      flex-shrink: 0;
-      filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.5));
-    }
-    .placar-numero {
-      font-size: 42px; 
-      font-weight: 800;
-      margin: 0 3px; 
-      min-width: 50px; 
-      text-align: center;
-      flex-shrink: 0;
-      text-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
-      font-family: 'Roboto Mono', monospace;
-      color: var(--placar-text); /* Garantir que use a cor da fonte global */
-    }
-
-    .team-name-abbr {
-      font-size: 28px; 
-      font-weight: 600;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 4px 8px;
-      border-radius: 4px;
-      text-transform: uppercase; 
-      flex-shrink: 0;
-      white-space: nowrap;
-      color: var(--placar-text); /* Garantir que use a cor da fonte global */
-    }
-
-    #cronometro_display,
-    #periodoDisplay_display {
-      font-size: 24px; 
-      font-weight: 700;
-      color: var(--placar-timer-color);
-      background: rgba(0, 0, 0, 0.6);
-      padding: 4px 10px;
-      border-radius: 6px;
-      white-space: nowrap;
-      text-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
-      flex-shrink: 0;
-      font-family: 'Roboto Mono', monospace;
-    }
-    #periodoDisplay_display {
-        font-size: 20px; 
-        background: rgba(0, 0, 0, 0.4);
-        color: var(--placar-text); /* Garantir que use a cor da fonte global */
         font-family: 'Montserrat', sans-serif;
-    }
-
-    /* Cartões dentro do .placar-group */
-    .cards-display {
-      display: flex;
-      min-height: 20px;
-      align-items: center;
-      justify-content: center;
-      width: unset;
-      flex-shrink: 0;
-      gap: 5px; 
-    }
-    .card-indicator {
-      width: 20px; 
-      height: 20px;
-      border-radius: 4px; 
-      margin: 0;
-      border: 1px solid #777;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    }
-    .card-indicator.yellow-card { background-color: #ffc107; }
-    .card-indicator.red-card { background-color: #dc3545; } 
-
-    .penalty-shootout-placar {
-        display: none; 
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        gap: 15px;
-        padding: 10px 0; 
-    }
-    .penalty-team-display {
+        background-color: #2c3e50;
+        color: #ecf0f1;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 5px;
-        min-width: 150px;
-        justify-content: center;
-        flex-grow: 1;
+        padding: 20px;
+        min-height: 100vh;
+        box-sizing: border-box;
     }
-    .penalty-team-display .team-name-display {
-        font-size: 18px; 
-        font-weight: 600;
-        margin-top: 5px;
-        background: rgba(0, 0, 0, 0.4);
-        padding: 4px 10px;
+    .control-panel {
+        background-color: #34495e;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        width: 100%;
+        max-width: 900px; /* Aumentei a largura máxima */
+        margin-bottom: 20px;
+        box-sizing: border-box;
+    }
+    .control-group {
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #4a6480;
+    }
+    .control-group:last-child {
+        border-bottom: none;
+    }
+    h2, h3 {
+        color: #ecf0f1;
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #ddd;
+    }
+    input[type="number"], input[type="text"], input[type="url"], select {
+        width: calc(100% - 22px);
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #555;
         border-radius: 5px;
-        white-space: nowrap;
-        color: var(--placar-text); /* Garantir que use a cor da fonte global */
+        background-color: #4a6480;
+        color: #ecf0f1;
+        font-size: 16px;
+        box-sizing: border-box;
     }
-    .penalty-team-display .escudo {
-        width: 55px; 
-        height: 55px;
+    input[type="text"]::placeholder, input[type="url"]::placeholder {
+        color: #bbb;
     }
-    .penalty-balls-container {
+    button {
+        background-color: #2ecc71;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: background-color 0.3s, transform 0.1s;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        min-width: 80px; /* Garante largura mínima para botões */
+    }
+    button:hover {
+        background-color: #27ae60;
+        transform: translateY(-1px);
+    }
+    button.danger {
+        background-color: #e74c3c;
+    }
+    button.danger:hover {
+        background-color: #c0392b;
+    }
+    .team-controls {
         display: flex;
-        gap: 8px;
-        margin-top: 5px;
+        flex-wrap: wrap; /* Permite quebrar em telas menores */
+        gap: 20px;
     }
-    .penalty-ball {
-        width: 28px; 
-        height: 28px;
-        border-radius: 50%;
-        border: 2px solid white;
-        background-color: transparent;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    .team-section {
+        flex: 1; /* Distribui o espaço igualmente */
+        min-width: 300px; /* Garante que não fique muito pequeno */
+        background-color: #4a6480;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: inset 0 0 8px rgba(0,0,0,0.2);
     }
-    .penalty-ball.green { background-color: #28a745; border-color: #28a745; }
-    .penalty-ball.red { background-color: #dc3545; border-color: #dc3545; }
-
-
-    .animated-text {
-      position: absolute; 
-      top: 50%; 
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.5); /* Começa menor */
-      font-size: 80px; 
-      font-weight: 900;
-      color: var(--highlight-color); 
-      text-shadow: 0 0 15px rgba(0, 255, 255, 0.9), 0 0 8px rgba(0, 255, 255, 0.6);
-      opacity: 0;
-      visibility: hidden;
-      animation-fill-mode: forwards;
-      z-index: 1000;
-      pointer-events: none;
-      white-space: nowrap;
-      font-family: 'Montserrat', sans-serif;
+    .timer-controls, .card-buttons, .penalty-buttons, .toggle-buttons, .color-picker-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
     }
-
-    @keyframes fadeInScaleOut {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); visibility: hidden; }
-      1% { visibility: visible; }
-      20% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); } 
-      80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-      99% { opacity: 0; visibility: visible; } 
-      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); visibility: hidden;} 
+    .card-buttons button {
+        background-color: #f39c12; /* Amarelo */
     }
-
-    .animated-text.active {
-      animation: fadeInScaleOut 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; /* Curva de animação mais suave */
+    .card-buttons button.red {
+        background-color: #e74c3c; /* Vermelho */
+    }
+    .penalty-buttons button {
+        background-color: #3498db; /* Azul */
+    }
+    .penalty-buttons button.green {
+        background-color: #2ecc71;
+    }
+    .penalty-buttons button.red {
+        background-color: #e74c3c;
+    }
+    .toggle-buttons button {
+        background-color: #9b59b6; /* Roxo */
+    }
+    input[type="color"] {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background: none;
+        -webkit-appearance: none; /* Remove estilo padrão do navegador */
+        -moz-appearance: none;
+        appearance: none;
+    }
+    input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 0;
+    }
+    input[type="color"]::-webkit-color-swatch {
+        border: none;
+        border-radius: 5px;
+    }
+    #opacityValue {
+        min-width: 40px; /* Para manter o alinhamento */
+        text-align: right;
+    }
+    /* Estilo para a barra de rolagem (opcional) */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #34495e;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #556c86;
+        border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #6a84a0;
     }
   </style>
 </head>
 <body>
-  <div class="visual-overlay-container" id="visualOverlayContainer">
-    <div class="placar" id="placarPrincipal">
-      <div class="placar-content-wrapper" id="placarContentWrapper">
-        <div class="placar-main-line" id="normalPlacarContent_display">
-          <div class="placar-group">
-              <div id="cronometro_display">00:00</div>
-          </div>
+  <div class="control-panel">
+    <h2>Controle do Aquiles Overlay PRO</h2>
+    <p>ID do Narrador: <span id="narratorIdDisplay"></span></p>
+    <button id="logoutButton" class="danger">Sair</button>
+    <hr style="border-color: #4a6480; margin: 25px 0;">
 
-          <div class="placar-group">
-              <div class="placar-group-score">
-                  <img id="escudo1_display" class="escudo" src="" alt="Escudo Time 1">
-                  <span id="nomeAbbr1_display" class="team-name-abbr">T1</span>
-                  <span id="placar1_display" class="placar-numero">0</span>
-              </div>
-              <div id="cardsDisplay1_display" class="cards-display"></div> 
-          </div>
-
-          <div class="logo-central">
-            <img id="logoOverlay_display" src="" alt="Sua Logo">
-          </div>
-
-          <div class="placar-group">
-              <div class="placar-group-score">
-                  <span id="placar2_display" class="placar-numero">0</span>
-                  <span id="nomeAbbr2_display" class="team-name-abbr">T2</span>
-                  <img id="escudo2_display" class="escudo" src="" alt="Escudo Time 2">
-              </div>
-              <div id="cardsDisplay2_display" class="cards-display"></div> 
-          </div>
-          
-          <div class="placar-group">
-              <div id="periodoDisplay_display" class="periodo">1º T</div>
-          </div>
-        </div>
-
-        <div class="penalty-shootout-placar" id="penaltyPlacarContent_display">
-          <div class="penalty-team-display">
-            <img id="escudoPenalty1_display" class="escudo" src="" alt="Escudo Time 1">
-            <span id="nomePenalty1_display" class="team-name-display">Time 1</span>
-            <div class="penalty-balls-container" id="penaltiesDisplay1_display"></div>
-          </div>
-          <div class="logo-central">
-            <img id="logoOverlayPenalty_display" src="" alt="Sua Logo">
-          </div>
-          <div class="penalty-team-display">
-            <img id="escudoPenalty2_display" class="escudo" src="" alt="Escudo Time 2">
-            <span id="nomePenalty2_display" class="team-name-display">Time 2</span>
-            <div class="penalty-balls-container" id="penaltiesDisplay2_display"></div>
-          </div>
-        </div>
-      </div> 
-
-      <div class="animated-text" id="goalAnimation_display">GOOOOL!</div>
+    <div class="control-group toggle-buttons">
+        <h3>Visibilidade e Modo</h3>
+        <button id="toggleVisibility">Alternar Visibilidade</button>
+        <button id="togglePenaltyMode">Alternar Modo Pênalti</button>
+        <button id="triggerGoalAnimation">Animação de Gol!</button>
+        <select id="goalTeamSelect" style="width: auto; flex-grow: 0; margin-left: 10px;">
+            <option value="1">Time 1</option>
+            <option value="2">Time 2</option>
+        </select>
     </div>
+
+    <div class="control-group team-controls">
+        <div class="team-section">
+            <h3>Time 1</h3>
+            <label for="nome1">Nome Completo:</label>
+            <input type="text" id="nome1" placeholder="Nome Time 1">
+            <label for="nomeAbbr1">Abreviação (Máx 4 caracteres):</label>
+            <input type="text" id="nomeAbbr1" placeholder="T1" maxlength="4">
+            <label for="escudo1">URL Escudo:</label>
+            <input type="url" id="escudo1" placeholder="https://exemplo.com/escudo1.png">
+            <button onclick="updateTeamInfo(1)">Atualizar Info Time 1</button>
+
+            <h4 style="margin-top: 25px;">Placar Time 1</h4>
+            <button onclick="updateScore(1, 1)">+1 Gol</button>
+            <button onclick="updateScore(1, -1)">-1 Gol</button>
+            <button class="danger" onclick="updateScore(1, 0, true)">Resetar</button>
+
+            <h4 style="margin-top: 25px;">Cartões Time 1</h4>
+            <div class="card-buttons">
+                <button class="yellow" onclick="updateCards(1, 'amarelo', 1)">+ Amarelo</button>
+                <button class="yellow" onclick="updateCards(1, 'amarelo', -1)">- Amarelo</button>
+                <button class="red" onclick="updateCards(1, 'vermelho', 1)">+ Vermelho</button>
+                <button class="red" onclick="updateCards(1, 'vermelho', -1)">- Vermelho</button>
+                <button class="danger" onclick="updateCards(1, 'reset')">Resetar</button>
+            </div>
+            
+            <h4 style="margin-top: 25px;">Pênaltis Time 1</h4>
+            <div class="penalty-buttons">
+                <button class="green" onclick="addPenalty(1, 'green')">Gol</button>
+                <button class="red" onclick="addPenalty(1, 'red')">Perdeu</button>
+                <button class="danger" onclick="resetPenalties(1)">Resetar</button>
+            </div>
+        </div>
+
+        <div class="team-section">
+            <h3>Time 2</h3>
+            <label for="nome2">Nome Completo:</label>
+            <input type="text" id="nome2" placeholder="Nome Time 2">
+            <label for="nomeAbbr2">Abreviação (Máx 4 caracteres):</label>
+            <input type="text" id="nomeAbbr2" placeholder="T2" maxlength="4">
+            <label for="escudo2">URL Escudo:</label>
+            <input type="url" id="escudo2" placeholder="https://exemplo.com/escudo2.png">
+            <button onclick="updateTeamInfo(2)">Atualizar Info Time 2</button>
+
+            <h4 style="margin-top: 25px;">Placar Time 2</h4>
+            <button onclick="updateScore(2, 1)">+1 Gol</button>
+            <button onclick="updateScore(2, -1)">-1 Gol</button>
+            <button class="danger" onclick="updateScore(2, 0, true)">Resetar</button>
+
+            <h4 style="margin-top: 25px;">Cartões Time 2</h4>
+            <div class="card-buttons">
+                <button class="yellow" onclick="updateCards(2, 'amarelo', 1)">+ Amarelo</button>
+                <button class="yellow" onclick="updateCards(2, 'amarelo', -1)">- Amarelo</button>
+                <button class="red" onclick="updateCards(2, 'vermelho', 1)">+ Vermelho</button>
+                <button class="red" onclick="updateCards(2, 'vermelho', -1)">- Vermelho</button>
+                <button class="danger" onclick="updateCards(2, 'reset')">Resetar</button>
+            </div>
+
+            <h4 style="margin-top: 25px;">Pênaltis Time 2</h4>
+            <div class="penalty-buttons">
+                <button class="green" onclick="addPenalty(2, 'green')">Gol</button>
+                <button class="red" onclick="addPenalty(2, 'red')">Perdeu</button>
+                <button class="danger" onclick="resetPenalties(2)">Resetar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <h3>Cronômetro e Período</h3>
+        <div class="timer-controls">
+            <button id="startButton">Iniciar Cronômetro</button>
+            <button id="pauseButton">Pausar Cronômetro</button>
+            <button id="resetButton" class="danger">Resetar Cronômetro</button>
+            <label for="setSeconds" style="margin-left: 20px;">Ajustar Segundos:</label>
+            <input type="number" id="setSeconds" value="0" min="0" style="width: 80px;">
+            <button onclick="setTimer()">Aplicar</button>
+            
+            <label for="periodSelect" style="margin-left: 20px;">Período:</label>
+            <select id="periodSelect" style="width: auto; flex-grow: 0;">
+                <option value="0">Parado</option>
+                <option value="1">1º T</option>
+                <option value="2">2º T</option>
+                <option value="3">Prorrog</option>
+                <option value="4">Int</option>
+                <option value="5">T. Extra</option>
+            </select>
+            <button onclick="updatePeriod()">Atualizar</button>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <h3>Estilo e Branding</h3>
+        <label for="logoOverlay">URL Logo Central:</label>
+        <input type="url" id="logoOverlay" placeholder="https://exemplo.com/sua_logo.png">
+        <button onclick="updateLogo()">Atualizar Logo</button>
+
+        <label for="fontColor">Cor da Fonte Principal:</label>
+        <div class="color-picker-group">
+            <input type="color" id="fontColor" value="#E0E0E0">
+            <button onclick="updateFontColor()">Aplicar</button>
+        </div>
+
+        <label for="placarOpacity">Opacidade do Fundo (%):</label>
+        <div class="color-picker-group">
+            <input type="range" id="placarOpacity" min="0" max="100" value="90" style="width: 150px;">
+            <span id="opacityValue">90%</span>
+            <button onclick="updatePlacarOpacity()">Aplicar</button>
+        </div>
+
+        <label for="placarTheme">Tema do Placar:</label>
+        <select id="placarTheme" style="width: auto; flex-grow: 0;">
+            <option value="0">Padrão Escuro</option>
+            <option value="1">Azul</option>
+            <option value="2">Verde</option>
+            <option value="3">Vermelho</option>
+            <option value="4">Amarelo (Texto Preto)</option>
+        </select>
+        <button onclick="updatePlacarTheme()">Aplicar Tema</button>
+    </div>
+
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
   <script>
-    // ** SEU FIREBASE CONFIG ESTÁ AQUI **
+    // ** SUBSTITUA PELAS SUAS CREDENCIAIS DO FIREBASE **
     const firebaseConfig = {
-      apiKey: "AIzaSyAFp_iujrtqjiTU5yq2yNSBIpwgjQZZyns",
-      authDomain: "aquilesplacarpro.firebaseapp.com",
-      databaseURL: "https://aquilesplacarpro-default-rtdb.firebaseio.com",
-      projectId: "aquilesplacarpro",
-      storageBucket: "aquilesplacarpro.firebasestorage.app",
-      messagingSenderId: "922321609151",
-      appId: "1:922321609151:web:ba51f5b21b322cf0a4c10a"
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_AUTH_DOMAIN",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_STORAGE_BUCKET",
+      messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+      appId: "SEU_APP_ID",
+      databaseURL: "SUA_DATABASE_URL"
     };
 
-    // Inicialize o Firebase
     const app = firebase.initializeApp(firebaseConfig);
-    let database;
-    let overlayStateRef; 
+    const auth = firebase.auth();
+    const database = firebase.database();
+    let overlayStateRef;
+    let narratorId;
 
-    // Estado local da overlay (refletirá o Firebase, mas o cronômetro é local)
-    let overlayState = {
-      placar: { '1': 0, '2': 0 },
-      cards: { '1': { 'amarelo': 0, 'vermelho': 0 }, '2': { 'amarelo': 0, 'vermelho': 0 } },
-      penalties: { '1': [], '2': [] },
-      seconds: 0, 
-      timerRunning: false,
-      placarThemeIndex: 0,
-      placarOpacity: 90, 
-      fontColor: '#E0E0E0', 
-      penaltyModeActive: false,
-      activeAnimation: null, 
-      currentPeriod: 1,
-      nome1: '',
-      nome2: '',
-      nomeAbbr1: 'T1',
-      nomeAbbr2: 'T2',
-      escudo1: '',
-      escudo2: '',
-      logoOverlay: '',
-      isVisible: true
-    };
-
-    let timerInterval = null; // Para o setInterval local
-    let localSeconds = 0; // O tempo que a overlay realmente exibe e avança
-
-    const placarThemes = [
-      { rgb: '34, 34, 34', text: 'white', border: '#555', timerColor: '#0ff' }, 
-      { rgb: '0, 123, 255', text: 'white', border: '#0056b3', timerColor: '#fff' },
-      { rgb: '40, 167, 69', text: 'white', border: '#218838', timerColor: '#fff' },
-      { rgb: '220, 53, 69', text: 'white', border: '#c82333', timerColor: '#fff' },
-      { rgb: '255, 193, 7', text: 'black', border: '#e0a800', timerColor: '#333' }
-    ];
-
-    const periodNames = {
-        0: 'Parado',
-        1: '1º T',
-        2: '2º T',
-        3: 'Prorrog',
-        4: 'Int',
-        5: 'T. Extra'
-    };
-
-    document.addEventListener('DOMContentLoaded', initializeApp);
-
-    function initializeApp() {
-        database = app.database(); 
-
+    document.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
-        const narratorId = urlParams.get('narratorId');
+        narratorId = urlParams.get('narratorId');
 
-        if (narratorId) {
-            setupFirebaseForNarrator(narratorId);
-        } else {
-            console.error("ID do Narrador não encontrado na URL. Use ?narratorId=SEU_ID");
-            document.getElementById('placarPrincipal').innerHTML = '<div style="color: red; font-size: 24px; text-align: center; padding: 20px;">ERRO: ID do Narrador não definido na URL.<br>Ex: overlay.html?narratorId=seu_id</div>';
+        if (!narratorId) {
+            alert("ID do narrador não encontrado. Redirecionando para login.");
+            window.location.href = 'login.html';
+            return;
         }
-        
-        const goalAnimationElement = document.getElementById('goalAnimation_display');
-        goalAnimationElement.addEventListener('animationend', (event) => {
-            if (event.animationName === 'fadeInScaleOut') {
-                // Ao final da animação, garante que ela esteja oculta e o placar visível
-                goalAnimationElement.style.visibility = 'hidden';
-                goalAnimationElement.classList.remove('active');
-                document.getElementById('placarContentWrapper').classList.remove('hidden-content');
-                document.getElementById('placarContentWrapper').classList.add('visible-content');
-            }
-        });
-    }
-
-    function setupFirebaseForNarrator(narratorId) {
+        document.getElementById('narratorIdDisplay').textContent = narratorId;
         overlayStateRef = database.ref(`narrators/${narratorId}/overlayState`);
-
-        overlayStateRef.on('value', (snapshot) => {
-            if (snapshot.exists()) {
-                const newState = snapshot.val();
-                
-                // Mapeia os dados do Firebase para o estado local, garantindo valores padrão
-                overlayState.placar = newState.placar || { '1': 0, '2': 0 };
-                overlayState.cards = newState.cards || { '1': { 'amarelo': 0, 'vermelho': 0 }, '2': { 'amarelo': 0, 'vermelho': 0 } };
-                overlayState.penalties = newState.penalties || { '1': [], '2': [] };
-                // timerRunning e seconds são tratados separadamente abaixo para o cronômetro
-                overlayState.placarThemeIndex = newState.placarThemeIndex !== undefined ? newState.placarThemeIndex : 0;
-                overlayState.placarOpacity = newState.placarOpacity !== undefined ? newState.placarOpacity : 90;
-                overlayState.fontColor = newState.fontColor || '#E0E0E0';
-                overlayState.penaltyModeActive = newState.penaltyModeActive !== undefined ? newState.penaltyModeActive : false;
-                overlayState.activeAnimation = newState.activeAnimation || null;
-                overlayState.currentPeriod = newState.currentPeriod !== undefined ? newState.currentPeriod : 1;
-                overlayState.nome1 = newState.nome1 || '';
-                overlayState.nome2 = newState.nome2 || '';
-                overlayState.nomeAbbr1 = newState.nomeAbbr1 || 'T1';
-                overlayState.nomeAbbr2 = newState.nomeAbbr2 || 'T2';
-                overlayState.escudo1 = newState.escudo1 || '';
-                overlayState.escudo2 = newState.escudo2 || '';
-                overlayState.logoOverlay = newState.logoOverlay || '';
-                overlayState.isVisible = newState.isVisible !== undefined ? newState.isVisible : true;
-
-                // *** NOVA LÓGICA DO CRONÔMETRO: SÓ ALTERA SE HOUVER COMANDO EXPLÍCITO ***
-                const firebaseSeconds = newState.seconds !== undefined ? newState.seconds : 0;
-                const firebaseTimerRunning = newState.timerRunning !== undefined ? newState.timerRunning : false;
-
-                if (firebaseTimerRunning && !overlayState.timerRunning) {
-                    // Comando para INICIAR o timer veio do Firebase
-                    startLocalTimer(firebaseSeconds); 
-                } else if (!firebaseTimerRunning && overlayState.timerRunning) {
-                    // Comando para PAUSAR o timer veio do Firebase
-                    stopLocalTimer();
-                    localSeconds = firebaseSeconds; // Sincroniza o tempo finalizado
-                } else if (!firebaseTimerRunning && !overlayState.timerRunning && localSeconds !== firebaseSeconds) {
-                    // Timer PARADO no Firebase e o tempo foi RESETADO ou AJUSTADO no controlador
-                    localSeconds = firebaseSeconds;
-                }
-                // Se o timer já está rodando localmente e o Firebase continua enviando `timerRunning: true`,
-                // não faz nada para não interromper a contagem independente.
-
-                overlayState.timerRunning = firebaseTimerRunning; // Atualiza o estado para o próximo ciclo
-                // FIM DA NOVA LÓGICA DO CRONÔMETRO
-                
-                renderUI();
+        
+        // Verifica o estado da autenticação
+        auth.onAuthStateChanged(user => {
+            if (!user || user.uid !== narratorId) {
+                alert("Sessão inválida ou não autorizado. Redirecionando para login.");
+                window.location.href = 'login.html';
             } else {
-                console.warn(`Nó para narrador '${narratorId}' não encontrado no Firebase. Aguardando dados do controlador.`);
-                // Opcional: Mostrar uma mensagem na overlay para o usuário
+                // Carrega o estado inicial do placar para preencher os campos do controlador
+                overlayStateRef.once('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        const state = snapshot.val();
+                        if (state.nome1) document.getElementById('nome1').value = state.nome1;
+                        if (state.nomeAbbr1) document.getElementById('nomeAbbr1').value = state.nomeAbbr1;
+                        if (state.escudo1) document.getElementById('escudo1').value = state.escudo1;
+                        if (state.nome2) document.getElementById('nome2').value = state.nome2;
+                        if (state.nomeAbbr2) document.getElementById('nomeAbbr2').value = state.nomeAbbr2;
+                        if (state.escudo2) document.getElementById('escudo2').value = state.escudo2;
+                        if (state.logoOverlay) document.getElementById('logoOverlay').value = state.logoOverlay;
+                        if (state.fontColor) document.getElementById('fontColor').value = state.fontColor;
+                        if (state.placarOpacity !== undefined) {
+                            document.getElementById('placarOpacity').value = state.placarOpacity;
+                            document.getElementById('opacityValue').textContent = `${state.placarOpacity}%`;
+                        }
+                        if (state.placarThemeIndex !== undefined) document.getElementById('placarTheme').value = state.placarThemeIndex;
+                        if (state.currentPeriod !== undefined) document.getElementById('periodSelect').value = state.currentPeriod;
+                        if (state.seconds !== undefined) document.getElementById('setSeconds').value = state.seconds;
+                    }
+                });
             }
-        }, (error) => {
-          console.error("Erro ao ler dados do Firebase:", error);
-          document.getElementById('placarPrincipal').innerHTML = '<div style="color: red; font-size: 24px; text-align: center; padding: 20px;">ERRO DE FIREBASE.<br>Verifique sua configuração ou conexão.</div>';
+        });
+
+        // Listeners para os botões e inputs do controlador
+        document.getElementById('logoutButton').addEventListener('click', () => {
+            auth.signOut().then(() => {
+                window.location.href = 'login.html';
+            });
+        });
+
+        document.getElementById('toggleVisibility').addEventListener('click', () => {
+            overlayStateRef.child('isVisible').transaction((current) => !current);
+        });
+        document.getElementById('togglePenaltyMode').addEventListener('click', () => {
+            overlayStateRef.child('penaltyModeActive').transaction((current) => !current);
+        });
+        document.getElementById('triggerGoalAnimation').addEventListener('click', () => {
+            const team = document.getElementById('goalTeamSelect').value;
+            // Define a animação e o time que fez o gol
+            overlayStateRef.update({
+                activeAnimation: 'goalAnimation',
+                goalAnimationTeam: team
+            });
+            // Opcional: Remover a animação após um tempo se o overlay não o fizer automaticamente
+            // A animação é resetada no overlay.html após sua conclusão, então esta linha é mais um fallback.
+            setTimeout(() => {
+                overlayStateRef.update({ activeAnimation: null, goalAnimationTeam: null });
+            }, 2500); // Um pouco mais longo que a duração da animação total no overlay
+        });
+
+        document.getElementById('startButton').addEventListener('click', () => overlayStateRef.update({ timerRunning: true }));
+        document.getElementById('pauseButton').addEventListener('click', () => overlayStateRef.update({ timerRunning: false }));
+        document.getElementById('resetButton').addEventListener('click', () => overlayStateRef.update({ timerRunning: false, seconds: 0 }));
+        document.getElementById('placarOpacity').addEventListener('input', (event) => {
+            document.getElementById('opacityValue').textContent = `${event.target.value}%`;
+        });
+    });
+
+    function updateScore(team, change, reset = false) {
+        if (reset) {
+            overlayStateRef.child(`placar/${team}`).set(0);
+        } else {
+            overlayStateRef.child(`placar/${team}`).transaction((currentScore) => {
+                const newScore = (currentScore || 0) + change;
+                return Math.max(0, newScore); // Garante que não seja negativo
+            });
+        }
+    }
+
+    function updateCards(team, type, change = 0, reset = false) {
+        if (reset === 'reset') {
+            overlayStateRef.child(`cards/${team}`).set({ amarelo: 0, vermelho: 0 });
+        } else {
+            overlayStateRef.child(`cards/${team}/${type}`).transaction((currentCount) => {
+                const newValue = (currentCount || 0) + change;
+                return Math.max(0, newValue); // Garante que não seja negativo
+            });
+        }
+    }
+
+    function addPenalty(team, type) {
+        overlayStateRef.child(`penalties/${team}`).transaction((currentPenalties) => {
+            const penalties = currentPenalties || [];
+            if (penalties.length < 5) { // Limite de 5 cobranças
+                penalties.push(type);
+            }
+            return penalties;
         });
     }
 
-    // Cronômetro local
-    function startLocalTimer(initialSeconds) {
-        if (timerInterval) clearInterval(timerInterval); // Limpa qualquer timer anterior
-        localSeconds = initialSeconds; 
-        document.getElementById('cronometro_display').innerText = formatTime(localSeconds); // Atualiza imediatamente
-
-        timerInterval = setInterval(() => {
-            localSeconds++;
-            document.getElementById('cronometro_display').innerText = formatTime(localSeconds);
-        }, 1000);
+    function resetPenalties(team) {
+        overlayStateRef.child(`penalties/${team}`).set([]);
     }
 
-    function stopLocalTimer() {
-        if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-        }
+    function updateTeamInfo(team) {
+        const nome = document.getElementById(`nome${team}`).value;
+        const nomeAbbr = document.getElementById(`nomeAbbr${team}`).value;
+        const escudo = document.getElementById(`escudo${team}`).value;
+        overlayStateRef.update({
+            [`nome${team}`]: nome,
+            [`nomeAbbr${team}`]: nomeAbbr,
+            [`escudo${team}`]: escudo
+        });
     }
 
-    function renderUI() {
-      // Atualiza os elementos do placar
-      document.getElementById('placar1_display').innerText = overlayState.placar['1'];
-      document.getElementById('placar2_display').innerText = overlayState.placar['2'];
-      document.getElementById('nomeAbbr1_display').innerText = overlayState.nomeAbbr1 || 'T1'; 
-      document.getElementById('nomeAbbr2_display').innerText = overlayState.nomeAbbr2 || 'T2'; 
-      document.getElementById('nomePenalty1_display').innerText = overlayState.nome1 || 'Time 1';
-      document.getElementById('nomePenalty2_display').innerText = overlayState.nome2 || 'Time 2';
-
-      document.getElementById('escudo1_display').src = overlayState.escudo1 || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
-      document.getElementById('escudoPenalty1_display').src = overlayState.escudo1 || 'data:image/gif;base64,R0lGODlhAQABAAACADs=';
-      document.getElementById('escudo2_display').src = overlayState.escudo2 || 'data:image/gif;base64,R0lGODlhAQABAAACADs=';
-      document.getElementById('escudoPenalty2_display').src = overlayState.escudo2 || 'data:image/gif;base64,R0lGODlhAQABAAACADs=';
-
-      document.getElementById('logoOverlay_display').src = overlayState.logoOverlay || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
-      document.getElementById('logoOverlayPenalty_display').src = overlayState.logoOverlay || 'data:image/gif;base64,R0lGODlhAQABAAACADs=';
-
-      document.getElementById('cronometro_display').innerText = formatTime(localSeconds); 
-
-      renderCards('1');
-      renderCards('2');
-      document.getElementById('periodoDisplay_display').innerText = periodNames[overlayState.currentPeriod] || 'N/A';
-      
-      renderPenalties('1');
-      renderPenalties('2');
-
-      applyPlacarTheme();
-
-      // Aplica a cor da fonte geral
-      document.documentElement.style.setProperty('--placar-text', overlayState.fontColor);
-
-
-      const placarContentWrapper = document.getElementById('placarContentWrapper');
-      const normalContent = document.getElementById('normalPlacarContent_display');
-      const penaltyContent = document.getElementById('penaltyPlacarContent_display');
-      const goalAnimation = document.getElementById('goalAnimation_display');
-
-      // Gerencia a animação e visibilidade do placar
-      if (overlayState.activeAnimation === 'goalAnimation') {
-          // Esconde o conteúdo do placar e mostra a animação
-          placarContentWrapper.classList.add('hidden-content');
-          placarContentWrapper.classList.remove('visible-content');
-          goalAnimation.style.visibility = 'visible';
-          goalAnimation.classList.add('active'); 
-      } else {
-          // Garante que a animação esteja parada e oculta
-          goalAnimation.style.visibility = 'hidden';
-          goalAnimation.classList.remove('active'); 
-          
-          // Mostra o conteúdo do placar e decide qual modo (normal/pênalti)
-          placarContentWrapper.classList.remove('hidden-content');
-          placarContentWrapper.classList.add('visible-content');
-
-          if (overlayState.penaltyModeActive) {
-              normalContent.style.display = 'none';
-              penaltyContent.style.display = 'flex'; 
-          } else {
-              normalContent.style.display = 'flex'; 
-              penaltyContent.style.display = 'none';
-          }
-      }
-
-      // Controla a visibilidade geral da overlay
-      const visualContainer = document.getElementById('visualOverlayContainer');
-      if (overlayState.isVisible) {
-        visualContainer.classList.remove('hidden-display');
-      } else {
-        visualContainer.classList.add('hidden-display');
-      }
+    function updateLogo() {
+        const logo = document.getElementById('logoOverlay').value;
+        overlayStateRef.update({ logoOverlay: logo });
     }
 
-    function formatTime(s) {
-      const min = String(Math.floor(s / 60)).padStart(2, '0');
-      const sec = String(s % 60).padStart(2, '0');
-      return `${min}:${sec}`;
+    function updateFontColor() {
+        const color = document.getElementById('fontColor').value;
+        overlayStateRef.update({ fontColor: color });
     }
 
-    function applyPlacarTheme() {
-      const theme = placarThemes[overlayState.placarThemeIndex];
-      document.documentElement.style.setProperty('--placar-bg-rgb', theme.rgb);
-      document.documentElement.style.setProperty('--placar-opacity', (overlayState.placarOpacity / 100).toFixed(2));
-      document.documentElement.style.setProperty('--placar-border', theme.border);
-      document.documentElement.style.setProperty('--placar-timer-color', theme.timerColor);
-      document.documentElement.style.setProperty('--highlight-color', theme.timerColor);
+    function updatePlacarOpacity() {
+        const opacity = parseInt(document.getElementById('placarOpacity').value);
+        overlayStateRef.update({ placarOpacity: opacity });
     }
 
-    function renderCards(time) {
-      const displayElement = document.getElementById(`cardsDisplay${time}_display`);
-      displayElement.innerHTML = ''; 
-      const amarelos = (overlayState.cards[time] && typeof overlayState.cards[time].amarelo === 'number') ? overlayState.cards[time].amarelo : 0;
-      const vermelhos = (overlayState.cards[time] && typeof overlayState.cards[time].vermelho === 'number') ? overlayState.cards[time].vermelho : 0;
-
-      for (let i = 0; i < amarelos; i++) {
-        const cardDiv = document.createElement('div');
-        cardDiv.className = 'card-indicator yellow-card';
-        displayElement.appendChild(cardDiv);
-      }
-      for (let i = 0; i < vermelhos; i++) {
-        const cardDiv = document.createElement('div');
-        cardDiv.className = 'card-indicator red-card'; 
-        displayElement.appendChild(cardDiv);
-      }
+    function updatePlacarTheme() {
+        const themeIndex = parseInt(document.getElementById('placarTheme').value);
+        overlayStateRef.update({ placarThemeIndex: themeIndex });
     }
 
-    function renderPenalties(time) {
-      const penaltyBallsContainer = document.getElementById(`penaltiesDisplay${time}_display`);
-      penaltyBallsContainer.innerHTML = ''; 
-
-      const penalties = overlayState.penalties && Array.isArray(overlayState.penalties[time]) ? overlayState.penalties[time] : []; 
-      
-      for (let i = 0; i < 5; i++) { 
-        const ballDiv = document.createElement('div');
-        ballDiv.className = 'penalty-ball';
-        if (penalties[i]) {
-          ballDiv.classList.add(penalties[i]); 
-        }
-        penaltyBallsContainer.appendChild(ballDiv);
-      }
+    function updatePeriod() {
+        const period = parseInt(document.getElementById('periodSelect').value);
+        overlayStateRef.update({ currentPeriod: period });
     }
+
+    function setTimer() {
+        const seconds = parseInt(document.getElementById('setSeconds').value);
+        overlayStateRef.update({ seconds: seconds });
+    }
+
   </script>
 </body>
-        </html>
+</html>
