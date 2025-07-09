@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Aquiles Overlay PRO - Placar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&family=Montserrat:wght@600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --placar-bg-rgb: 34, 34, 34;
+      --placar-opacity: 0.9;
+      --placar-text: white;
+      --placar-border: #555;
+      --placar-timer-color: #0ff; /* Será ajustado para ser igual a --placar-text para a animação */
+      --highlight-color: var(--placar-text); /* AGORA USA A MESMA COR DO TEXTO PARA ANIMAÇÃO */
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      background-color: transparent;
+      overflow: hidden; /* Importante para não ter barras de rolagem */
+      height: 100vh; /* Garante que ocupe a altura total */
+      display: flex;
+      justify-content: center;
+      align-items: flex-start; /* Alinha o placar no topo da tela */
+      padding-top: 15px; /* Espaçamento do topo */
+      box-sizing: border-box;
+    }
+
+    .visual-overlay-container {
+      width: 100%;
+      max-width: 960px; /* Aumentei um pouco a largura máxima */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+      opacity: 1;
+      visibility: visible;
+      background-color: transparent;
+      position: relative;
+      z-index: 2;
+      height: fit-content;
+      min-height: 120px; /* Garante uma altura mínima para o placar */
+      justify-content: flex-start;
+    }
+
+    .visual-overlay-container.hidden-display {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(-50px);
+    }
+
+    .placar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(var(--placar-bg-rgb), var(--placar-opacity));
+      padding: 8px 20px; /* Aumentei o padding interno */
+      border-radius: 15px; /* Mais arredondado */
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid var(--placar-border);
+      color: var(--placar-text);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5); /* Sombra mais forte */
+      min-height: unset;
+      height: fit-content;
+      justify-content: center;
+    }
+
+    .placar-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        align-items: center;
+        transition: opacity 0.3s ease-in-out; /* Transição para opacidade */
+    }
+
+    .placar-content-wrapper.hidden-content {
+        opacity: 0;
+        pointer-events: none; /* Desabilita eventos de mouse */
+    }
+    .placar-content-wrapper.visible-content {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .placar-main-line {
+      display: flex;
+      align-items: center;
+      justify-content: center; /* Centraliza horizontalmente */
+      width: 100%;
+      gap: 18px; /* Espaçamento maior entre os grupos */
+      flex-wrap: nowrap;
+      padding: 5px 0;
+    }
+
+    .placar-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px; /* Espaçamento interno no grupo */
+      flex-shrink: 0;
+      justify-content: center;
+      min-height: 105px; /* Garante altura mínima uniforme */
+      box-sizing: border-box;
+    }
+
+    .placar-group-score {
+      display: flex;
+      align-items: center;
+      gap: 8px; /* Espaçamento entre escudo, abreviação e número */
+      flex-shrink: 0;
+      justify-content: center;
+    }
+
+    .logo-central {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 0 15px;
+      min-width: 80px; /* Largura mínima para a logo */
+      min-height: 105px; /* Alinhar com a altura dos grupos */
+      box-sizing: border-box;
+    }
+    .logo-central img {
+      width: 70px; /* Logo central maior */
+      height: 70px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.7));
+    }
+
+    .escudo {
+      width: 65px; /* Escudos maiores */
+      height: 65px;
+      object-fit: contain;
+      flex-shrink: 0;
+      filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.7));
+      transition: transform 0.2s ease-out; /* Transição suave para o pulo */
+    }
+    .placar-numero {
+      font-size: 58px; /* Números maiores */
+      font-weight: 800;
+      margin: 0 5px;
+      min-width: 70px; /* Largura mínima para números */
+      text-align: center;
+      flex-shrink: 0;
+      text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+      font-family: 'Roboto Mono', monospace;
+      color: var(--placar-text);
+    }
+
+    .team-name-abbr {
+      font-size: 34px; /* Abreviação maior */
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 6px 12px; /* Padding ajustado */
+      border-radius: 8px; /* Mais arredondado */
+      text-transform: uppercase;
+      flex-shrink: 0;
+      white-space: nowrap;
+      color: var(--placar-text);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    #cronometro_display,
+    #periodoDisplay_display {
+      font-size: 30px; /* Timer maior */
+      font-weight: 700;
+      margin-top: 15px; /* Ajuste manual para alinhar verticalmente */
+      margin-bottom: 8px;
+      color: var(--placar-timer-color);
+      background: rgba(0, 0, 0, 0.7);
+      padding: 6px 12px;
+      border-radius: 8px;
+      white-space: nowrap;
+      text-shadow: 0 0 6px rgba(0, 0, 0, 0.7);
+      flex-shrink: 0;
+      font-family: 'Roboto Mono', monospace;
+    }
+    #periodoDisplay_display {
+        font-size: 26px; /* Período um pouco menor */
+        background: rgba(0, 0, 0, 0.5);
+        color: var(--placar-text);
+        font-family: 'Montserrat', sans-serif;
+        margin-top: 15px; /* Ajuste manual */
+        margin-bottom: 8px;
+    }
+
+    /* Cartões dentro do .placar-group */
+    .cards-display {
+      display: flex;
+      min-height: 28px; /* Altura mínima para os cartões */
+      align-items: center;
+      justify-content: center;
+      width: unset;
+      flex-shrink: 0;
+      gap: 8px; /* Espaçamento entre os cartões */
+      margin-top: 8px; /* Empurrar para baixo para alinhar com o período/cronômetro */
+    }
+    .card-indicator {
+      width: 28px; /* Cartões maiores */
+      height: 28px;
+      border-radius: 5px;
+      margin: 0;
+      border: 1px solid #777;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+    }
+    .card-indicator.yellow-card { background-color: #ffc107; }
+    .card-indicator.red-card { background-color: #dc3545; }
+
+    .penalty-shootout-placar {
+        display: none;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        gap: 20px; /* Espaçamento maior */
+        padding: 10px 0;
+    }
+    .penalty-team-display {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px; /* Espaçamento interno */
+        min-width: 180px; /* Largura mínima */
+        justify-content: center;
+        flex-grow: 1;
+    }
+    .penalty-team-display .team-name-display {
+        font-size: 22px; /* Nome maior */
+        font-weight: 700;
+        margin-top: 5px;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 5px 12px;
+        border-radius: 6px;
+        white-space: nowrap;
+        color: var(--placar-text);
+    }
+    .penalty-team-display .escudo {
+        width: 65px; /* Escudos de pênalti iguais aos do placar normal */
+        height: 65px;
+    }
+    .penalty-balls-container {
+        display: flex;
+        gap: 10px; /* Espaçamento entre as bolas */
+        margin-top: 8px;
+    }
+    .penalty-ball {
+        width: 32px; /* Bolas maiores */
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid white;
+        background-color: transparent;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+    }
+    .penalty-ball.green { background-color: #28a745; border-color: #28a745; }
+    .penalty-ball.red { background-color: #dc3545; border-color: #dc3545; }
+
+
+    .animated-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.5); /* Começa menor */
+      font-size: 90px; /* Texto GOOOL! maior */
+      font-weight: 900;
+      color: var(--highlight-color);
+      text-shadow: 0 0 18px var(--highlight-color), 0 0 10px rgba(0, 0, 0, 0.7); /* Sombra também usa highlight-color */
+      opacity: 0;
+      visibility: hidden;
+      animation-fill-mode: forwards;
+      z-index: 1000;
+      pointer-events: none;
+      white-space: nowrap;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    @keyframes fadeInScaleOut {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); visibility: hidden; }
+      1% { visibility: visible; }
+      20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } /* Mais impacto no scale */
+      80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      99% { opacity: 0; visibility: visible; }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); visibility: hidden;}
+    }
+
+    @keyframes shieldJump {
+      0% { transform: translateY(0) scale(1); }
+      25% { transform: translateY(-20px) scale(1.15); /* Pula mais alto e cresce mais */ }
+      50% { transform: translateY(0) scale(1.1); /* Volta para cima um pouco menos */ }
+      75% { transform: translateY(-10px) scale(1.05); } /* Pequeno ressalto */
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    .animated-text.active {
+      animation: fadeInScaleOut 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+    .shield-jump-active { /* Classe aplicada aos escudos */
+      animation: shieldJump 1.0s ease-out forwards; /* Animação de pulo */
+    }
+  </style>
+</head>
+<body>
+  <div class="visual-overlay-container" id="visualOverlayContainer">
+    <div class="placar" id="placarPrincipal">
+      <div class="placar-content-wrapper" id="placarContentWrapper">
+        <div class="placar-main-line" id="normalPlacarContent_display">
+          <div class="placar-group">
+              <div id="cronometro_display">00:00</div>
+          </div>
+
+          <div class="placar-group">
+              <div class="placar-group-score">
+                  <img id="escudo1_display" class="escudo" src="" alt="Escudo Time 1">
+                  <span id="nomeAbbr1_display" class="team-name-abbr">T1</span>
+                  <span id="placar1_display" class="placar-numero">0</span>
+              </div>
+              <div id="cardsDisplay1_display" class="cards-display"></div>
+          </div>
+
+          <div class="logo-central">
+            <img id="logoOverlay_display" src="" alt="Sua Logo">
+          </div>
+
+          <div class="placar-group">
+              <div class="placar-group-score">
+                  <span id="placar2_display" class="placar-numero">0</span>
+                  <span id="nomeAbbr2_display" class="team-name-abbr">T2</span>
+                  <img id="escudo2_display" class="escudo" src="" alt="Escudo Time 2">
+              </div>
+              <div id="cardsDisplay2_display" class="cards-display"></div>
+          </div>
+          
+          <div class="placar-group">
+              <div id="periodoDisplay_display" class="periodo">1º T</div>
+          </div>
+        </div>
+
+        <div class="penalty-shootout-placar" id="penaltyPlacarContent_display">
+          <div class="penalty-team-display">
+            <img id="escudoPenalty1_display" class="escudo" src="" alt="Escudo Time 1">
+            <span id="nomePenalty1_display" class="team-name-display">Time 1</span>
+            <div class="penalty-balls-container" id="penaltiesDisplay1_display"></div>
+          </div>
+          <div class="logo-central">
+            <img id="logoOverlayPenalty_display" src="" alt="Sua Logo">
+          </div>
+          <div class="penalty-team-display">
+            <img id="escudoPenalty2_display" class="escudo" src="" alt="Escudo Time 2">
+            <span id="nomePenalty2_display" class="team-name-display">Time 2</span>
+            <div class="penalty-balls-container" id="penaltiesDisplay2_display"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animated-text" id="goalAnimation_display">GOOOOL!</div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    // ** SUBSTITUA PELAS SUAS CREDENCIAIS DO FIREBASE **
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_AUTH_DOMAIN",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_STORAGE_BUCKET",
+      messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+      appId: "SEU_APP_ID",
+      databaseURL: "SUA_DATABASE_URL"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    let database;
+    let overlayStateRef;
+
+    let overlayState = {
+      placar: { '1': 0, '2': 0 },
+      cards: { '1': { 'amarelo': 0, 'vermelho': 0 }, '2': { 'amarelo': 0, 'vermelho': 0 } },
+      penalties: { '1': [], '2': [] },
+      seconds: 0,
+      timerRunning: false,
+      placarThemeIndex: 0,
+      placarOpacity: 90,
+      fontColor: '#E0E0E0',
+      penaltyModeActive: false,
+      activeAnimation: null,
+      goalAnimationTeam: null, // Qual time fez o gol para a animação
+      currentPeriod: 1,
+      nome1: '',
+      nome2: '',
+      nomeAbbr1: 'T1',
+      nomeAbbr2: 'T2',
+      escudo1: '',
+      escudo2: '',
+      logoOverlay: '',
+      isVisible: true
+    };
+
+    let timerInterval = null;
+    let localSeconds = 0;
+
+    const placarThemes = [
+      { rgb: '34, 34, 34', text: 'white', border: '#555', timerColor: '#0ff' },
+      { rgb: '0, 123, 255', text: 'white', border: '#0056b3', timerColor: '#fff' },
+      { rgb: '40, 167, 69', text: 'white', border: '#218838', timerColor: '#fff' },
+      { rgb: '220, 53, 69', text: 'white', border: '#c82333', timerColor: '#fff' },
+      { rgb: '255, 193, 7', text: 'black', border: '#e0a800', timerColor: '#333' }
+    ];
+
+    const periodNames = {
+        0: 'Parado',
+        1: '1º T',
+        2: '2º T',
+        3: 'Prorrog',
+        4: 'Int',
+        5: 'T. Extra'
+    };
+
+    document.addEventListener('DOMContentLoaded', initializeApp);
+
+    function initializeApp() {
+        database = app.database();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const narratorId = urlParams.get('narratorId');
+
+        if (narratorId) {
+            setupFirebaseForNarrator(narratorId);
+        } else {
+            console.error("ID do Narrador não encontrado na URL. Use ?narratorId=SEU_ID");
+            document.getElementById('placarPrincipal').innerHTML = '<div style="color: red; font-size: 24px; text-align: center; padding: 20px;">ERRO: ID do Narrador não definido na URL.<br>Ex: overlay.html?narratorId=seu_id</div>';
+        }
+
+        const goalAnimationElement = document.getElementById('goalAnimation_display');
+        goalAnimationElement.addEventListener('animationend', (event) => {
+            if (event.animationName === 'fadeInScaleOut') {
+                // Ao final da animação de GOOOOL, garante que ela esteja oculta e o placar visível
+                goalAnimationElement.style.visibility = 'hidden';
+                goalAnimationElement.classList.remove('active');
+                document.getElementById('placarContentWrapper').classList.remove('hidden-content');
+                document.getElementById('placarContentWrapper').classList.add('visible-content');
+                // Remove a animação de pulo do escudo após a animação de GOOOOL terminar
+                document.getElementById('escudo1_display').classList.remove('shield-jump-active');
+                document.getElementById('escudo2_display').classList.remove('shield-jump-active');
+
+                // Envia para o Firebase que a animação acabou para que o controlador possa saber
+                if (overlayStateRef) { // Verifica se overlayStateRef já foi definido
+                    overlayStateRef.update({ activeAnimation: null, goalAnimationTeam: null });
+                }
+            }
+        });
+        
+        // Listener para remover a classe de pulo depois que a animação terminar no escudo
+        document.getElementById('escudo1_display').addEventListener('animationend', (event) => {
+            if (event.animationName === 'shieldJump') {
+                event.target.classList.remove('shield-jump-active');
+            }
+        });
+        document.getElementById('escudo2_display').addEventListener('animationend', (event) => {
+            if (event.animationName === 'shieldJump') {
+                event.target.classList.remove('shield-jump-active');
+            }
+        });
+    }
+
+    function setupFirebaseForNarrator(narratorId) {
+        overlayStateRef = database.ref(`narrators/${narratorId}/overlayState`);
+
+        overlayStateRef.on('value', (snapshot) => {
+            if (snapshot.exists()) {
+                const newState = snapshot.val();
+                
+                // Mapeia os dados do Firebase para o estado local, garantindo valores padrão
+                overlayState.placar = newState.placar || { '1': 0, '2': 0 };
+                overlayState.cards = newState.cards || { '1': { 'amarelo': 0, 'vermelho': 0 }, '2': { 'amarelo': 0, 'vermelho': 0 } };
+                overlayState.penalties = newState.penalties || { '1': [], '2': [] };
+                overlayState.placarThemeIndex = newState.placarThemeIndex !== undefined ? newState.placarThemeIndex : 0;
+                overlayState.placarOpacity = newState.placarOpacity !== undefined ? newState.placarOpacity : 90;
+                overlayState.fontColor = newState.fontColor || '#E0E0E0';
+                overlayState.penaltyModeActive = newState.penaltyModeActive !== undefined ? newState.penaltyModeActive : false;
+                overlayState.activeAnimation = newState.activeAnimation || null;
+                overlayState.goalAnimationTeam = newState.goalAnimationTeam || null; // Atualiza o time do gol
+                overlayState.currentPeriod = newState.currentPeriod !== undefined ? newState.currentPeriod : 1;
+                overlayState.nome1 = newState.nome1 || '';
+                overlayState.nome2 = newState.nome2 || '';
+                overlayState.nomeAbbr1 = newState.nomeAbbr1 || 'T1';
+                overlayState.nomeAbbr2 = newState.nomeAbbr2 || 'T2';
+                overlayState.escudo1 = newState.escudo1 || '';
+                overlayState.escudo2 = newState.escudo2 || '';
+                overlayState.logoOverlay = newState.logoOverlay || '';
+                overlayState.isVisible = newState.isVisible !== undefined ? newState.isVisible : true;
+
+                // Lógica do Cronômetro
+                const firebaseSeconds = newState.seconds !== undefined ? newState.seconds : 0;
+                const firebaseTimerRunning = newState.timerRunning !== undefined ? newState.timerRunning : false;
+
+                if (firebaseTimerRunning && !overlayState.timerRunning) {
+                    startLocalTimer(firebaseSeconds);
+                } else if (!firebaseTimerRunning && overlayState.timerRunning) {
+                    stopLocalTimer();
+                    localSeconds = firebaseSeconds;
+                } else if (!firebaseTimerRunning && !overlayState.timerRunning && localSeconds !== firebaseSeconds) {
+                    localSeconds = firebaseSeconds;
+                }
+                overlayState.timerRunning = firebaseTimerRunning;
+                
+                renderUI();
+            } else {
+                console.warn(`Nó para narrador '${narratorId}' não encontrado no Firebase. Aguardando dados do controlador.`);
+            }
+        }, (error) => {
+          console.error("Erro ao ler dados do Firebase:", error);
+          document.getElementById('placarPrincipal').innerHTML = '<div style="color: red; font-size: 24px; text-align: center; padding: 20px;">ERRO DE FIREBASE.<br>Verifique sua configuração ou conexão.</div>';
+        });
+    }
+
+    // Cronômetro local
+    function startLocalTimer(initialSeconds) {
+        if (timerInterval) clearInterval(timerInterval);
+        localSeconds = initialSeconds;
+        document.getElementById('cronometro_display').innerText = formatTime(localSeconds);
+
+        timerInterval = setInterval(() => {
+            localSeconds++;
+            document.getElementById('cronometro_display').innerText = formatTime(localSeconds);
+        }, 1000);
+    }
+
+    function stopLocalTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    function renderUI() {
+      // Atualiza os elementos do placar
+      document.getElementById('placar1_display').innerText = overlayState.placar['1'];
+      document.getElementById('placar2_display').innerText = overlayState.placar['2'];
+      document.getElementById('nomeAbbr1_display').innerText = overlayState.nomeAbbr1 || 'T1';
+      document.getElementById('nomeAbbr2_display').innerText = overlayState.nomeAbbr2 || 'T2';
+      document.getElementById('nomePenalty1_display').innerText = overlayState.nome1 || 'Time 1';
+      document.getElementById('nomePenalty2_display').innerText = overlayState.nome2 || 'Time 2';
+
+      // Usa imagens transparentes se a URL estiver vazia para evitar quebras visuais
+      const defaultTransparentPixel = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+      document.getElementById('escudo1_display').src = overlayState.escudo1 || defaultTransparentPixel;
+      document.getElementById('escudoPenalty1_display').src = overlayState.escudo1 || defaultTransparentPixel;
+      document.getElementById('escudo2_display').src = overlayState.escudo2 || defaultTransparentPixel;
+      document.getElementById('escudoPenalty2_display').src = overlayState.escudo2 || defaultTransparentPixel;
+
+      document.getElementById('logoOverlay_display').src = overlayState.logoOverlay || defaultTransparentPixel;
+      document.getElementById('logoOverlayPenalty_display').src = overlayState.logoOverlay || defaultTransparentPixel;
+
+      document.getElementById('cronometro_display').innerText = formatTime(localSeconds);
+
+      renderCards('1');
+      renderCards('2');
+      document.getElementById('periodoDisplay_display').innerText = periodNames[overlayState.currentPeriod] || 'N/A';
+      
+      renderPenalties('1');
+      renderPenalties('2');
+
+      applyPlacarTheme();
+
+      // Aplica a cor da fonte geral e a cor da animação GOOOL
+      document.documentElement.style.setProperty('--placar-text', overlayState.fontColor);
+      document.documentElement.style.setProperty('--highlight-color', overlayState.fontColor);
+
+
+      const placarContentWrapper = document.getElementById('placarContentWrapper');
+      const normalContent = document.getElementById('normalPlacarContent_display');
+      const penaltyContent = document.getElementById('penaltyPlacarContent_display');
+      const goalAnimation = document.getElementById('goalAnimation_display');
+
+      // Elementos dos escudos para a animação
+      const escudo1 = document.getElementById('escudo1_display');
+      const escudo2 = document.getElementById('escudo2_display');
+
+      // Gerencia a animação e visibilidade do placar
+      if (overlayState.activeAnimation === 'goalAnimation') {
+          // Esconde o conteúdo do placar e mostra a animação
+          placarContentWrapper.classList.add('hidden-content');
+          placarContentWrapper.classList.remove('visible-content');
+          goalAnimation.style.visibility = 'visible';
+          goalAnimation.classList.add('active');
+
+          // Remove a classe de pulo de ambos os escudos para garantir reset
+          escudo1.classList.remove('shield-jump-active');
+          escudo2.classList.remove('shield-jump-active');
+
+          // Aplica a animação de pulo no escudo correto
+          if (overlayState.goalAnimationTeam === '1') {
+              escudo1.classList.add('shield-jump-active');
+          } else if (overlayState.goalAnimationTeam === '2') {
+              escudo2.classList.add('shield-jump-active');
+          }
+
+      } else {
+          // Garante que a animação esteja parada e oculta
+          goalAnimation.style.visibility = 'hidden';
+          goalAnimation.classList.remove('active');
+          escudo1.classList.remove('shield-jump-active'); // Garante que a animação seja removida
+          escudo2.classList.remove('shield-jump-active'); // Garante que a animação seja removida
+          
+          // Mostra o conteúdo do placar e decide qual modo (normal/pênalti)
+          placarContentWrapper.classList.remove('hidden-content');
+          placarContentWrapper.classList.add('visible-content');
+
+          if (overlayState.penaltyModeActive) {
+              normalContent.style.display = 'none';
+              penaltyContent.style.display = 'flex';
+          } else {
+              normalContent.style.display = 'flex';
+              penaltyContent.style.display = 'none';
+          }
+      }
+
+      // Controla a visibilidade geral da overlay
+      const visualContainer = document.getElementById('visualOverlayContainer');
+      if (overlayState.isVisible) {
+        visualContainer.classList.remove('hidden-display');
+      } else {
+        visualContainer.classList.add('hidden-display');
+      }
+    }
+
+    function formatTime(s) {
+      const min = String(Math.floor(s / 60)).padStart(2, '0');
+      const sec = String(s % 60).padStart(2, '0');
+      return `${min}:${sec}`;
+    }
+
+    function applyPlacarTheme() {
+      const theme = placarThemes[overlayState.placarThemeIndex];
+      document.documentElement.style.setProperty('--placar-bg-rgb', theme.rgb);
+      document.documentElement.style.setProperty('--placar-opacity', (overlayState.placarOpacity / 100).toFixed(2));
+      document.documentElement.style.setProperty('--placar-border', theme.border);
+      document.documentElement.style.setProperty('--placar-timer-color', theme.timerColor);
+      // '--highlight-color' é definido em renderUI, sincronizado com '--placar-text'
+    }
+
+    function renderCards(time) {
+      const displayElement = document.getElementById(`cardsDisplay${time}_display`);
+      displayElement.innerHTML = '';
+      const amarelos = (overlayState.cards[time] && typeof overlayState.cards[time].amarelo === 'number') ? overlayState.cards[time].amarelo : 0;
+      const vermelhos = (overlayState.cards[time] && typeof overlayState.cards[time].vermelho === 'number') ? overlayState.cards[time].vermelho : 0;
+
+      for (let i = 0; i < amarelos; i++) {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card-indicator yellow-card';
+        displayElement.appendChild(cardDiv);
+      }
+      for (let i = 0; i < vermelhos; i++) {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card-indicator red-card';
+        displayElement.appendChild(cardDiv);
+      }
+    }
+
+    function renderPenalties(time) {
+      const penaltyBallsContainer = document.getElementById(`penaltiesDisplay${time}_display`);
+      penaltyBallsContainer.innerHTML = '';
+
+      const penalties = overlayState.penalties && Array.isArray(overlayState.penalties[time]) ? overlayState.penalties[time] : [];
+      
+      // Sempre renderiza 5 bolas para mostrar o progresso da série de pênaltis
+      for (let i = 0; i < 5; i++) {
+        const ballDiv = document.createElement('div');
+        ballDiv.className = 'penalty-ball';
+        if (penalties[i]) {
+          ballDiv.classList.add(penalties[i]);
+        }
+        penaltyBallsContainer.appendChild(ballDiv);
+      }
+    }
+  </script>
+</body>
+            </html>
